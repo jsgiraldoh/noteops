@@ -1,0 +1,25 @@
+# Env
+.env
+.env.local
+
+# Go
+backend/bin/
+backend/tmp/
+*.exe
+
+# Node
+frontend/node_modules/
+frontend/.svelte-kit/
+frontend/build/
+
+# Python
+workers/__pycache__/
+workers/.venv/
+*.pyc
+
+# Docker
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

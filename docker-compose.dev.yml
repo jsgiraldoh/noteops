@@ -1,0 +1,44 @@
+# Override para desarrollo local
+# Uso: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+
+  traefik:
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "8080:8080"   # dashboard Traefik
+
+  backend:
+    # En dev construye local en lugar de usar la imagen del registry
+    image: noteops_backend_dev
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: dev
+    volumes:
+      - ./backend:/app
+    environment:
+      APP_ENV: development
+    labels:
+      - "traefik.http.routers.api.entrypoints=web"
+      - "traefik.http.routers.api.tls=false"
+      - "traefik.http.routers.ws.entrypoints=web"
+      - "traefik.http.routers.ws.tls=false"
+
+  frontend:
+    image: noteops_frontend_dev
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: dev
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      APP_ENV: development
+    labels:
+      - "traefik.http.routers.app.entrypoints=web"
+      - "traefik.http.routers.app.tls=false"

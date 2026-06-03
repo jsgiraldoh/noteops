@@ -1,0 +1,27 @@
+api:
+  dashboard: false
+
+log:
+  level: INFO
+
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+    http:
+      tls:
+        certResolver: letsencrypt
+
+providers:
+  docker:
+    exposedByDefault: false
+    network: noteops_net
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: ${ACME_EMAIL:-admin@noteops.local}
+      storage: /letsencrypt/acme.json
+      httpChallenge:
+        entryPoint: web

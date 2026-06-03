@@ -1,0 +1,18 @@
+[build]
+  cmd = "go build -o ./tmp/main ./cmd/server"
+  bin = "./tmp/main"
+  delay = 1000
+  exclude_dir = ["tmp", "vendor"]
+  include_ext = ["go"]
+  kill_delay = "0s"
+  log = "build-errors.log"
+  rerun = false
+  rerun_delay = 500
+  send_interrupt = false
+  stop_on_error = true
+
+[log]
+  time = true
+
+[misc]
+  clean_on_exit = true

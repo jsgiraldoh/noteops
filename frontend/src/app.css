@@ -1,0 +1,91 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0f1117;
+  --bg2: #1a1d27;
+  --bg3: #242736;
+  --border: #2e3148;
+  --text: #e8eaf0;
+  --text2: #9ba3c4;
+  --accent: #6c7fff;
+  --accent2: #4ade80;
+  --warn: #f59e0b;
+  --danger: #ef4444;
+  --radius: 10px;
+  --font: 'Inter', system-ui, sans-serif;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.5rem 1.25rem;
+  transition: opacity 0.15s;
+}
+button:hover { opacity: 0.85; }
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-secondary { background: var(--bg3); color: var(--text); border: 1px solid var(--border); }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-success { background: var(--accent2); color: #000; }
+
+input, select, textarea {
+  width: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.9rem;
+  padding: 0.6rem 0.9rem;
+  transition: border-color 0.15s;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+}
+
+.badge {
+  display: inline-block;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+}
+.badge-blue { background: #1e2a6e; color: #93aaff; }
+.badge-green { background: #14401e; color: #4ade80; }
+.badge-yellow { background: #422006; color: #fbbf24; }
+.badge-red { background: #450a0a; color: #f87171; }
+
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 0.7rem 1rem; text-align: left; }
+th { color: var(--text2); font-size: 0.78rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+td { border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--bg3); }
+
+.error { color: var(--danger); font-size: 0.85rem; margin-top: 0.5rem; }
+.label { color: var(--text2); font-size: 0.8rem; font-weight: 500; margin-bottom: 0.3rem; display: block; }
+.field { margin-bottom: 1rem; }

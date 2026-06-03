@@ -1,0 +1,161 @@
+# ─────────────────────────────────────────────────────────────
+# NoteOPs — Docker Compose
+#
+# MODO LOCAL (build desde código fuente):
+#   docker compose --profile local up -d
+#
+# MODO REGISTRY (imágenes desde GHCR):
+#   TAG=v1.0.0 docker compose --profile registry up -d
+#   (o simplemente: docker compose --profile registry up -d  → usa latest)
+#
+# SOLO INFRA (DB + Redis + MinIO, útil para desarrollo):
+#   docker compose up -d postgres redis minio
+# ─────────────────────────────────────────────────────────────
+
+services:
+
+  # ── Reverse proxy ─────────────────────────────────────────
+  traefik:
+    image: traefik:v3
+    container_name: noteops_traefik
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./infra/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik_certs:/letsencrypt
+    networks: [noteops_net]
+    restart: unless-stopped
+
+  # ── Backend LOCAL (build desde ./backend) ─────────────────
+  backend-local:
+    profiles: [local]
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: prod
+    container_name: noteops_backend
+    env_file: .env
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.rule=Host(`${APP_DOMAIN:-noteops.local}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.api.entrypoints=web"
+      - "traefik.http.routers.ws.rule=Host(`${APP_DOMAIN:-noteops.local}`) && PathPrefix(`/ws`)"
+      - "traefik.http.routers.ws.entrypoints=web"
+      - "traefik.http.services.api.loadbalancer.server.port=8080"
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis:    { condition: service_started }
+    networks: [noteops_net]
+    restart: unless-stopped
+
+  # ── Frontend LOCAL (build desde ./frontend) ───────────────
+  frontend-local:
+    profiles: [local]
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: prod
+    container_name: noteops_frontend
+    env_file: .env
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app.rule=Host(`${APP_DOMAIN:-noteops.local}`)"
+      - "traefik.http.routers.app.entrypoints=web"
+      - "traefik.http.services.app.loadbalancer.server.port=3000"
+    depends_on: [backend-local]
+    networks: [noteops_net]
+    restart: unless-stopped
+
+  # ── Backend REGISTRY (imagen desde GHCR) ──────────────────
+  backend-registry:
+    profiles: [registry]
+    image: ghcr.io/${GITHUB_REPOSITORY:-johansgiraldo/noteops}/backend:${TAG:-latest}
+    container_name: noteops_backend
+    env_file: .env
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.rule=Host(`${APP_DOMAIN:-noteops.local}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.api.entrypoints=web"
+      - "traefik.http.routers.ws.rule=Host(`${APP_DOMAIN:-noteops.local}`) && PathPrefix(`/ws`)"
+      - "traefik.http.routers.ws.entrypoints=web"
+      - "traefik.http.services.api.loadbalancer.server.port=8080"
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis:    { condition: service_started }
+    networks: [noteops_net]
+    restart: unless-stopped
+
+  # ── Frontend REGISTRY (imagen desde GHCR) ─────────────────
+  frontend-registry:
+    profiles: [registry]
+    image: ghcr.io/${GITHUB_REPOSITORY:-johansgiraldo/noteops}/frontend:${TAG:-latest}
+    container_name: noteops_frontend
+    env_file: .env
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app.rule=Host(`${APP_DOMAIN:-noteops.local}`)"
+      - "traefik.http.routers.app.entrypoints=web"
+      - "traefik.http.services.app.loadbalancer.server.port=3000"
+    depends_on: [backend-registry]
+    networks: [noteops_net]
+    restart: unless-stopped
+
+  # ── PostgreSQL ────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: noteops_postgres
+    environment:
+      POSTGRES_DB:       ${DB_NAME:-noteops}
+      POSTGRES_USER:     ${DB_USER:-noteops}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-noteops}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks: [noteops_net]
+    restart: unless-stopped
+
+  # ── Redis ─────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: noteops_redis
+    networks: [noteops_net]
+    restart: unless-stopped
+
+  # ── MinIO (exportes) ──────────────────────────────────────
+  minio:
+    image: minio/minio
+    container_name: noteops_minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER:     ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    volumes: [minio_data:/data]
+    ports: ["9001:9001"]
+    networks: [noteops_net]
+    restart: unless-stopped
+
+  # ── Workers Python IA (opcional) ──────────────────────────
+  workers:
+    profiles: [ai]
+    build: { context: ./workers }
+    container_name: noteops_workers
+    env_file: .env
+    depends_on: [postgres, redis]
+    networks: [noteops_net]
+    restart: unless-stopped
+
+networks:
+  noteops_net:
+    driver: bridge
+
+volumes:
+  pg_data:
+  minio_data:
+  traefik_certs:

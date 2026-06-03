@@ -1,0 +1,116 @@
+package main
+
+import (
+	"context"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/johansgiraldo/noteops/backend/internal/config"
+	"github.com/johansgiraldo/noteops/backend/internal/handlers"
+	"github.com/johansgiraldo/noteops/backend/internal/middleware"
+	"github.com/johansgiraldo/noteops/backend/internal/repository"
+	"github.com/johansgiraldo/noteops/backend/internal/service"
+)
+
+func main() {
+	cfg := config.Load()
+
+	// ── Base de datos ──────────────────────────────────────────────────────────
+	ctx := context.Background()
+	db, err := pgxpool.New(ctx, cfg.DatabaseURL)
+	if err != nil {
+		log.Fatalf("unable to connect to database: %v", err)
+	}
+	defer db.Close()
+
+	if err := db.Ping(ctx); err != nil {
+		log.Fatalf("database ping failed: %v", err)
+	}
+	log.Println("✓ connected to PostgreSQL")
+
+	// ── Capas ─────────────────────────────────────────────────────────────────
+	repo := repository.New(db)
+	svc := service.New(repo, db)
+	hub := handlers.NewHub(repo, svc)
+	h := handlers.New(repo, svc, hub, cfg.JWTSecret)
+
+	// ── Router ────────────────────────────────────────────────────────────────
+	if cfg.AppEnv == "production" {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
+	r := gin.New()
+	r.Use(gin.Recovery())
+	r.Use(middleware.RequestLogger())
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "POST", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
+
+	// ── Rutas públicas ────────────────────────────────────────────────────────
+	r.GET("/api/health", h.Health)
+	r.POST("/api/auth/login", h.Login)
+
+	// ── WebSocket ─────────────────────────────────────────────────────────────
+	r.GET("/ws/session/:id", hub.ServeWS)
+
+	// ── Rutas protegidas ──────────────────────────────────────────────────────
+	api := r.Group("/api", middleware.Auth(cfg.JWTSecret))
+	{
+		api.GET("/subjects", h.GetSubjects)
+		api.GET("/subjects/:id/students", h.GetStudentsBySubject)
+		api.GET("/subjects/:id/grades", h.GetSubjectGrades)
+		api.GET("/subjects/:id/final-grades", h.GetFinalGrades)
+		api.POST("/subjects/:id/enroll", h.EnrollStudent)
+
+		api.POST("/students", h.CreateStudent)
+
+		api.POST("/grades", h.RecordGrade)
+		api.PATCH("/grades/:id/comment", h.UpdateComment)
+
+		api.POST("/sessions", h.CreateSession)
+		api.POST("/sessions/:id/activate", h.ActivateSession)
+		api.GET("/sessions/:id/slots", h.GetSlots)
+		api.POST("/sessions/:id/slots/:slotID/reserve", h.ReserveSlot)
+	}
+
+	// ── Servidor con graceful shutdown ────────────────────────────────────────
+	srv := &http.Server{
+		Addr:         ":" + cfg.AppPort,
+		Handler:      r,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 30 * time.Second,
+		IdleTimeout:  60 * time.Second,
+	}
+
+	go func() {
+		log.Printf("✓ NoteOPs backend listening on :%s [%s]", cfg.AppPort, cfg.AppEnv)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("server error: %v", err)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	log.Println("shutting down gracefully...")
+	shutCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(shutCtx); err != nil {
+		log.Fatalf("forced shutdown: %v", err)
+	}
+	log.Println("server stopped")
+}
