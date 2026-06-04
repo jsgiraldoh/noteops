@@ -7,6 +7,7 @@
   import { restoreToken } from '$lib/api/auth';
   import { subjectsApi } from '$lib/api/subjects';
   import { subjects, currentSubject } from '$lib/stores/subject';
+  import { activeSession } from '$lib/stores/session';
 
   const PUBLIC = ['/login'];
 
@@ -24,6 +25,13 @@
       } catch { goto('/login'); }
     }
   });
+
+  function tryChangeSubject(s: typeof $currentSubject) {
+    if ($activeSession) return; // bloqueado mientras haya sesión en curso
+    currentSubject.set(s);
+  }
+
+  $: locked = $activeSession !== null;
 </script>
 
 {#if $page.url.pathname === '/login'}
@@ -37,9 +45,15 @@
           <button
             class="sub-btn"
             class:active={$currentSubject?.id === s.id}
-            on:click={() => currentSubject.set(s)}
+            class:locked={locked && $currentSubject?.id !== s.id}
+            disabled={locked && $currentSubject?.id !== s.id}
+            title={locked && $currentSubject?.id !== s.id ? 'Finaliza la sesión activa para cambiar de materia' : ''}
+            on:click={() => tryChangeSubject(s)}
           >{s.name}</button>
         {/each}
+        {#if locked}
+          <div class="session-badge">Sesión en curso</div>
+        {/if}
       </div>
       <div class="nav-links">
         <a href="/" class:active={$page.url.pathname === '/'}>📊 Notas</a>
@@ -60,6 +74,8 @@
 .subject-selector { display: flex; flex-direction: column; gap: 0.3rem; }
 .sub-btn { background: transparent; border: 1px solid transparent; color: var(--text2); border-radius: 8px; padding: 0.4rem 0.7rem; text-align: left; font-size: 0.85rem; }
 .sub-btn.active { background: var(--bg3); border-color: var(--border); color: var(--text); }
+.sub-btn.locked { opacity: 0.35; cursor: not-allowed; }
+.session-badge { margin-top: 0.4rem; font-size: 0.72rem; color: #16a34a; background: #dcfce7; border: 1px solid #bbf7d0; border-radius: 6px; padding: 0.2rem 0.5rem; text-align: center; }
 .nav-links { display: flex; flex-direction: column; gap: 0.3rem; margin-top: auto; }
 .nav-links a { color: var(--text2); padding: 0.5rem 0.7rem; border-radius: 8px; font-size: 0.9rem; transition: background 0.15s; }
 .nav-links a:hover, .nav-links a.active { background: var(--bg3); color: var(--text); text-decoration: none; }

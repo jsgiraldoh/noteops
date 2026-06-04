@@ -76,6 +76,16 @@ func (s *Service) GetSubjectGrades(ctx context.Context, subjectID uuid.UUID) (*S
 		return nil, err
 	}
 
+	enrollments, err := s.repo.GetEnrollmentsBySubject(ctx, subjectID)
+	if err != nil {
+		return nil, err
+	}
+
+	grades, err := s.repo.GetGradesBySubject(ctx, subjectID)
+	if err != nil {
+		return nil, err
+	}
+
 	finalGrades, err := s.repo.GetFinalGradesBySubject(ctx, subjectID)
 	if err != nil {
 		return nil, err
@@ -84,6 +94,8 @@ func (s *Service) GetSubjectGrades(ctx context.Context, subjectID uuid.UUID) (*S
 	return &SubjectGradesResult{
 		Cuts:        cuts,
 		Students:    students,
+		Enrollments: enrollments,
+		Grades:      grades,
 		FinalGrades: finalGrades,
 	}, nil
 }
@@ -113,5 +125,7 @@ func (s *Service) ComputeSessionTick(session *models.Session) models.SessionTick
 type SubjectGradesResult struct {
 	Cuts        []models.Cut        `json:"cuts"`
 	Students    []models.Student    `json:"students"`
+	Enrollments []models.Enrollment `json:"enrollments"`
+	Grades      []models.Grade      `json:"grades"`
 	FinalGrades []models.FinalGrade `json:"final_grades"`
 }

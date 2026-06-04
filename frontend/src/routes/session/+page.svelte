@@ -1,12 +1,12 @@
 <script lang="ts">
   import { onDestroy } from 'svelte';
   import { currentSubject } from '$lib/stores/subject';
-  import { sessionsApi, type Session, type Slot } from '$lib/api/sessions';
+  import { activeSession } from '$lib/stores/session';
+  import { sessionsApi, type Slot } from '$lib/api/sessions';
   import { connectClock, disconnectClock } from '$lib/stores/clock';
   import Clock from '$lib/components/Clock.svelte';
   import SlotGrid from '$lib/components/SlotGrid.svelte';
 
-  let session: Session | null = null;
   let slots: Slot[] = [];
   let loading = false;
   let error = '';
@@ -28,24 +28,39 @@
         slot_min: slotMin,
         room
       });
-      session = res.session;
+      activeSession.set(res.session);
       slots = res.slots;
     } catch (e: any) { error = e.message; }
     finally { loading = false; }
   }
 
   async function activate() {
-    if (!session) return;
-    await sessionsApi.activate(session.id);
-    session = { ...session, active: true };
-    connectClock(session.id);
+    if (!$activeSession) return;
+    await sessionsApi.activate($activeSession.id);
+    activeSession.update(s => s ? { ...s, active: true } : s);
+    connectClock($activeSession.id);
+  }
+
+  async function stopSession() {
+    if (!$activeSession) return;
+    await sessionsApi.deactivate($activeSession.id);
+    disconnectClock();
+    activeSession.set(null);
+    slots = [];
+  }
+
+  function newSession() {
+    disconnectClock();
+    activeSession.set(null);
+    slots = [];
+    error = '';
   }
 
   async function reserveSlot(slot: Slot) {
     const studentId = prompt('UUID del estudiante:');
-    if (!studentId || !session) return;
+    if (!studentId || !$activeSession) return;
     try {
-      const updated = await sessionsApi.reserve(session.id, slot.id, studentId);
+      const updated = await sessionsApi.reserve($activeSession.id, slot.id, studentId);
       slots = slots.map(s => s.id === updated.id ? updated : s);
     } catch { alert('Espacio ya reservado o error.'); }
   }
@@ -61,7 +76,7 @@
 <div class="two-col">
   <div class="left">
     <Clock />
-    {#if !session}
+    {#if !$activeSession}
       <div class="card setup">
         <h2>Configurar sesión</h2>
         <div class="field">
@@ -89,26 +104,31 @@
       </div>
     {:else}
       <div class="card session-info">
-        <div class="info-row"><span class="label-small">Aula</span><span>{session.room || '—'}</span></div>
+        <div class="info-row"><span class="label-small">Aula</span><span>{$activeSession.room || '—'}</span></div>
         <div class="info-row">
           <span class="label-small">Espacios</span>
-          <span>{Math.floor(session.duration_min / session.slot_min)} × {session.slot_min} min</span>
+          <span>{Math.floor($activeSession.duration_min / $activeSession.slot_min)} × {$activeSession.slot_min} min</span>
         </div>
         <div class="info-row">
           <span class="label-small">Estado</span>
-          <span class="badge {session.active ? 'badge-green' : 'badge-yellow'}">{session.active ? 'Activa' : 'En espera'}</span>
+          <span class="badge {$activeSession.active ? 'badge-green' : 'badge-yellow'}">{$activeSession.active ? 'Activa' : 'En espera'}</span>
         </div>
-        {#if !session.active}
-          <button class="btn-success" style="margin-top:1rem;width:100%" on:click={activate}>▶ Iniciar sesión</button>
-        {/if}
+        <div class="session-actions">
+          {#if !$activeSession.active}
+            <button class="btn-success" on:click={activate}>▶ Iniciar sesión</button>
+          {:else}
+            <button class="btn-danger" on:click={stopSession}>⏹ Finalizar sesión</button>
+          {/if}
+          <button class="btn-secondary" on:click={newSession}>+ Nueva sesión</button>
+        </div>
       </div>
     {/if}
   </div>
   <div class="right">
-    {#if session}
+    {#if $activeSession}
       <div class="slots-header">
         <h2>Espacios ({slots.filter(s=>s.student_id).length}/{slots.length} ocupados)</h2>
-        <button class="btn-secondary" on:click={async () => { if(session) slots = await sessionsApi.slots(session.id); }}>↻</button>
+        <button class="btn-secondary" on:click={async () => { if($activeSession) slots = await sessionsApi.slots($activeSession.id); }}>↻</button>
       </div>
       <SlotGrid {slots} onReserve={reserveSlot} />
     {:else}
@@ -133,4 +153,8 @@ h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; }
 .label-small { color: var(--text2); font-size: 0.8rem; }
 .slots-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
 .empty { color: var(--text2); text-align: center; padding: 3rem; }
+.session-actions { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.75rem; }
+.session-actions button { width: 100%; }
+.btn-danger { background: #dc2626; color: #fff; border: none; border-radius: 8px; padding: 0.6rem 1rem; font-size: 0.9rem; cursor: pointer; }
+.btn-danger:hover { background: #b91c1c; }
 </style>

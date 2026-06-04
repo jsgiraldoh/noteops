@@ -1,0 +1,16 @@
+# ── Env ───────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+# .env.example se incluye — SvelteKit lo lee en build time
+# para conocer las variables PUBLIC_* en tiempo de compilación
+
+# ── Dev ───────────────────────────────────────────────────────
+node_modules/
+.svelte-kit/
+build/
+*.log
+
+# ── OS ───────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db

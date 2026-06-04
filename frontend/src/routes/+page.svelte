@@ -1,7 +1,6 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import { currentSubject } from '$lib/stores/subject';
-  import { gradesApi, type SubjectGrades, type FinalGrade } from '$lib/api/grades';
+  import { gradesApi, type SubjectGrades, type FinalGrade, type Grade } from '$lib/api/grades';
   import GradeCell from '$lib/components/GradeCell.svelte';
   import CommentModal from '$lib/components/CommentModal.svelte';
 
@@ -10,8 +9,11 @@
   let loading = true;
   let error = '';
   let commentModal: { gradeId: string; current: string } | null = null;
-  // Map enrollmentId+activityId -> gradeId (for comment lookup)
-  let gradeIndex: Record<string, string> = {};
+
+  // student_id → enrollment_id
+  let enrollmentMap: Record<string, string> = {};
+  // "enrollment_id:activity_id" → Grade
+  let gradeMap: Record<string, Grade> = {};
 
   $: if ($currentSubject) loadGrades($currentSubject.id);
 
@@ -19,21 +21,32 @@
     loading = true; error = '';
     try {
       data = await gradesApi.bySubject(sid);
-      const fg = await gradesApi.finalBySubject(sid);
-      finals = Object.fromEntries(fg.map(f => [f.student_id, f]));
+      enrollmentMap = Object.fromEntries((data.enrollments ?? []).map(e => [e.student_id, e.id]));
+      gradeMap = Object.fromEntries((data.grades ?? []).map(g => [`${g.enrollment_id}:${g.activity_id}`, g]));
+      finals = Object.fromEntries((data.final_grades ?? []).map(f => [f.student_id, f]));
     } catch (e: any) { error = e.message; }
     finally { loading = false; }
   }
 
   async function saveGrade(enrollmentId: string, activityId: string, value: number) {
+    if (!enrollmentId) return;
     try {
-      const g = await gradesApi.record({ enrollment_id: enrollmentId, activity_id: activityId, value });
-      gradeIndex[`${enrollmentId}:${activityId}`] = g.id;
+      await gradesApi.record({ enrollment_id: enrollmentId, activity_id: activityId, value });
       if ($currentSubject) loadGrades($currentSubject.id);
     } catch {}
   }
 
-  function finalColor(v: number) {
+  function cutPartial(enrollId: string, activities: { id: string; weight: number }[]): number | null {
+    let sum = 0, totalWeight = 0;
+    for (const act of activities) {
+      const g = gradeMap[`${enrollId}:${act.id}`];
+      if (g?.value != null) { sum += g.value * act.weight; totalWeight += act.weight; }
+    }
+    return totalWeight > 0 ? sum / totalWeight : null;
+  }
+
+  function colorClass(v: number | null) {
+    if (v === null) return '';
     if (v >= 4) return 'green'; if (v >= 3) return 'yellow'; return 'red';
   }
 </script>
@@ -73,6 +86,7 @@
       </thead>
       <tbody>
         {#each data.students as student}
+          {@const enrollId = enrollmentMap[student.id] ?? ''}
           {@const final = finals[student.id]}
           <tr>
             <td>
@@ -81,26 +95,37 @@
             </td>
             {#each data.cuts as cut}
               {#each cut.activities as act}
+                {@const grade = gradeMap[`${enrollId}:${act.id}`]}
                 <td>
                   <GradeCell
-                    value={null}
+                    value={grade?.value ?? null}
                     editable={true}
-                    onSave={(v) => saveGrade('', act.id, v)}
+                    onSave={(v) => saveGrade(enrollId, act.id, v)}
                   />
                 </td>
               {/each}
-              <td>—</td>
+              {@const pc = cutPartial(enrollId, cut.activities)}
+              <td>
+                {#if pc !== null}
+                  <span class="badge badge-{colorClass(pc)}">{pc.toFixed(2)}</span>
+                {:else}—{/if}
+              </td>
             {/each}
             <td>
               {#if final}
-                <span class="badge badge-{finalColor(final.final_grade)}">
+                <span class="badge badge-{colorClass(final.final_grade)}">
                   {final.final_grade.toFixed(2)}
                 </span>
               {:else}—{/if}
             </td>
             <td>
               <button class="btn-secondary" style="padding:0.3rem 0.6rem;font-size:0.78rem"
-                on:click={() => commentModal = { gradeId: '', current: '' }}>
+                on:click={() => {
+                  const firstGrade = data?.cuts.flatMap(c => c.activities)
+                    .map(a => gradeMap[`${enrollId}:${a.id}`])
+                    .find(g => g?.id);
+                  commentModal = { gradeId: firstGrade?.id ?? '', current: firstGrade?.comment ?? '' };
+                }}>
                 💬
               </button>
             </td>

@@ -81,6 +81,7 @@ func main() {
 
 		api.POST("/sessions", h.CreateSession)
 		api.POST("/sessions/:id/activate", h.ActivateSession)
+		api.POST("/sessions/:id/deactivate", h.DeactivateSession)
 		api.GET("/sessions/:id/slots", h.GetSlots)
 		api.POST("/sessions/:id/slots/:slotID/reserve", h.ReserveSlot)
 	}

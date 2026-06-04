@@ -10,6 +10,8 @@ export const sessionsApi = {
     api.post(`/sessions/${sessionId}/activate`, {}),
   slots: (sessionId: string) =>
     api.get<Slot[]>(`/sessions/${sessionId}/slots`),
+  deactivate: (sessionId: string) =>
+    api.post(`/sessions/${sessionId}/deactivate`, {}),
   reserve: (sessionId: string, slotId: string, studentId: string) =>
     api.post<Slot>(`/sessions/${sessionId}/slots/${slotId}/reserve`, { student_id: studentId })
 };

@@ -263,6 +263,22 @@ func (h *Handler) ActivateSession(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"activated": true})
 }
 
+// POST /api/sessions/:id/deactivate
+func (h *Handler) DeactivateSession(c *gin.Context) {
+	sessionID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid session id"})
+		return
+	}
+
+	if err := h.repo.DeactivateSession(c.Request.Context(), sessionID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"deactivated": true})
+}
+
 // GET /api/sessions/:id/slots
 func (h *Handler) GetSlots(c *gin.Context) {
 	sessionID, err := uuid.Parse(c.Param("id"))

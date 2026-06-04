@@ -86,6 +86,48 @@ func (r *Repository) EnrollStudent(ctx context.Context, studentID, subjectID uui
 	return e, nil
 }
 
+func (r *Repository) GetEnrollmentsBySubject(ctx context.Context, subjectID uuid.UUID) ([]models.Enrollment, error) {
+	rows, err := r.db.Query(ctx,
+		`SELECT id, student_id, subject_id FROM enrollments WHERE subject_id = $1`, subjectID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var enrollments []models.Enrollment
+	for rows.Next() {
+		var e models.Enrollment
+		if err := rows.Scan(&e.ID, &e.StudentID, &e.SubjectID); err != nil {
+			return nil, err
+		}
+		enrollments = append(enrollments, e)
+	}
+	return enrollments, nil
+}
+
+func (r *Repository) GetGradesBySubject(ctx context.Context, subjectID uuid.UUID) ([]models.Grade, error) {
+	rows, err := r.db.Query(ctx,
+		`SELECT g.id, g.enrollment_id, g.activity_id, g.value, COALESCE(g.comment,''), g.recorded_at, g.updated_at
+		 FROM grades g
+		 JOIN enrollments e ON e.id = g.enrollment_id
+		 WHERE e.subject_id = $1`, subjectID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var grades []models.Grade
+	for rows.Next() {
+		var g models.Grade
+		if err := rows.Scan(&g.ID, &g.EnrollmentID, &g.ActivityID, &g.Value,
+			&g.Comment, &g.RecordedAt, &g.UpdatedAt); err != nil {
+			return nil, err
+		}
+		grades = append(grades, g)
+	}
+	return grades, nil
+}
+
 // ─── Subjects ────────────────────────────────────────────────────────────────
 
 func (r *Repository) GetSubjectsByTeacher(ctx context.Context, teacherID uuid.UUID) ([]models.Subject, error) {
@@ -177,7 +219,7 @@ func (r *Repository) UpsertGrade(ctx context.Context, req models.RecordGradeRequ
 		   SET value = EXCLUDED.value,
 		       comment = EXCLUDED.comment,
 		       updated_at = NOW()
-		 RETURNING id, enrollment_id, activity_id, value, comment, recorded_at, updated_at`,
+		 RETURNING id, enrollment_id, activity_id, value, COALESCE(comment,''), recorded_at, updated_at`,
 		enrollmentID, activityID, req.Value, req.Comment).
 		Scan(&g.ID, &g.EnrollmentID, &g.ActivityID, &g.Value,
 			&g.Comment, &g.RecordedAt, &g.UpdatedAt)
@@ -196,7 +238,7 @@ func (r *Repository) UpdateComment(ctx context.Context, gradeID uuid.UUID, comme
 
 func (r *Repository) GetGradesByEnrollment(ctx context.Context, enrollmentID uuid.UUID) ([]models.Grade, error) {
 	rows, err := r.db.Query(ctx,
-		`SELECT id, enrollment_id, activity_id, value, comment, recorded_at, updated_at
+		`SELECT id, enrollment_id, activity_id, value, COALESCE(comment,''), recorded_at, updated_at
 		 FROM grades WHERE enrollment_id = $1`, enrollmentID)
 	if err != nil {
 		return nil, err
@@ -273,6 +315,12 @@ func (r *Repository) GetSessionByID(ctx context.Context, id uuid.UUID) (*models.
 func (r *Repository) ActivateSession(ctx context.Context, id uuid.UUID) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE sessions SET active = true WHERE id = $1`, id)
+	return err
+}
+
+func (r *Repository) DeactivateSession(ctx context.Context, id uuid.UUID) error {
+	_, err := r.db.Exec(ctx,
+		`UPDATE sessions SET active = false WHERE id = $1`, id)
 	return err
 }
 
