@@ -1,7 +1,9 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { login } from '$lib/api/auth';
+  import { subjectsApi } from '$lib/api/subjects';
   import { user } from '$lib/stores/auth';
+  import { subjects, currentSubject } from '$lib/stores/subject';
 
   let email = '', password = '', error = '', loading = false;
 
@@ -10,6 +12,9 @@
     try {
       const res = await login(email, password);
       user.set(res.user);
+      const list = await subjectsApi.list();
+      subjects.set(list);
+      if (list.length && !$currentSubject) currentSubject.set(list[0]);
       goto('/');
     } catch (e: any) { error = e.message; }
     finally { loading = false; }

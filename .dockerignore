@@ -1,0 +1,31 @@
+# ── Env — nunca incluir en imagen Docker ─────────────────────
+.env
+.env.local
+.env.*.local
+
+# ── Git ───────────────────────────────────────────────────────
+.git
+.gitignore
+
+# ── CI/CD ────────────────────────────────────────────────────
+.github
+
+# ── Claude ───────────────────────────────────────────────────
+.claude
+
+# ── Docs ──────────────────────────────────────────────────────
+README.md
+CHANGELOG.md
+CONTRIBUTING.md
+CONTRIBUTORS.md
+NOTICE
+LICENSE
+
+# ── Datos académicos privados ────────────────────────────────
+Planilla_de_Notas_2025_Giraldo*
+infra/postgres/02_seed_data.sql
+
+# ── OS ───────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.log

@@ -116,3 +116,15 @@ CREATE INDEX IF NOT EXISTS idx_grades_enrollment ON grades(enrollment_id);
 CREATE INDEX IF NOT EXISTS idx_activities_cut    ON activities(cut_id);
 CREATE INDEX IF NOT EXISTS idx_slots_session     ON slots(session_id);
 CREATE INDEX IF NOT EXISTS idx_enrollments_subj  ON enrollments(subject_id);
+
+-- Usuario administrador por defecto
+-- Credenciales: admin@noteops.local / admin123
+-- Cambiar la contraseña después del primer login
+INSERT INTO users (full_name, email, password, role)
+VALUES (
+  'Admin',
+  'admin@noteops.local',
+  crypt('admin123', gen_salt('bf')),
+  'admin'
+)
+ON CONFLICT (email) DO NOTHING;

@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-REPO := johansgiraldo/noteops
+REPO := jsgiraldoh/noteops
 TAG  ?= latest
 
 .PHONY: help up up-registry dev down logs test migrate seed build push release deploy shell-db ps
@@ -16,7 +16,7 @@ up: ## Levantar con build local desde código fuente
 up-registry: ## Levantar usando imágenes de GHCR (TAG=latest por defecto)
 	TAG=$(TAG) docker compose --profile registry up -d
 
-dev: ## Desarrollo: solo infra (DB, Redis, MinIO) — corre backend/frontend en local
+dev: ## Solo infra (DB, Redis, MinIO) para desarrollo sin Docker en backend/frontend
 	docker compose up -d postgres redis minio
 
 down: ## Apagar todos los servicios
@@ -28,7 +28,7 @@ logs: ## Logs en tiempo real
 ps: ## Estado de los contenedores
 	docker compose ps
 
-shell-db: ## Abrir psql
+shell-db: ## Abrir psql en el contenedor de postgres
 	docker compose exec postgres psql -U noteops -d noteops
 
 # ── Calidad ──────────────────────────────────────────────────
@@ -36,14 +36,14 @@ test: ## Correr tests backend + check frontend
 	cd backend && go test ./... -race -cover
 	cd frontend && npm run check
 
-migrate: ## Aplicar migraciones
+migrate: ## Aplicar migraciones pendientes
 	docker compose exec noteops_backend ./migrate up
 
 seed: ## Cargar datos de ejemplo
 	docker compose exec noteops_backend ./seed
 
 # ── Imágenes ─────────────────────────────────────────────────
-build: ## Build local de imágenes
+build: ## Build local de imágenes Docker
 	docker build -t ghcr.io/$(REPO)/backend:$(TAG) ./backend
 	docker build -t ghcr.io/$(REPO)/frontend:$(TAG) ./frontend
 
@@ -57,14 +57,14 @@ pull: ## Descargar imágenes del registry
 
 # ── Release ──────────────────────────────────────────────────
 release: ## Crear release — uso: make release VERSION=v1.0.0
-	@test -n "$(VERSION)" || (echo "❌  Uso: make release VERSION=v1.0.0" && exit 1)
+	@test -n "$(VERSION)" || (echo "Uso: make release VERSION=v1.0.0" && exit 1)
 	git tag -a $(VERSION) -m "Release $(VERSION)"
 	git push origin $(VERSION)
-	@echo "✅  Tag $(VERSION) publicado — GitHub Actions construirá las imágenes"
+	@echo "Tag $(VERSION) publicado — GitHub Actions construirá las imágenes"
 
 deploy: ## Desplegar versión — uso: make deploy TAG=v1.0.0
-	@test -n "$(TAG)" || (echo "❌  Uso: make deploy TAG=v1.0.0" && exit 1)
+	@test -n "$(TAG)" || (echo "Uso: make deploy TAG=v1.0.0" && exit 1)
 	TAG=$(TAG) docker compose --profile registry pull
 	TAG=$(TAG) docker compose --profile registry up -d --no-deps --force-recreate \
 		backend-registry frontend-registry
-	@echo "✅  Desplegado TAG=$(TAG)"
+	@echo "Desplegado TAG=$(TAG)"

@@ -5,10 +5,10 @@
 #   docker compose --profile local up -d
 #
 # MODO REGISTRY (imágenes desde GHCR):
+#   docker compose --profile registry up -d
 #   TAG=v1.0.0 docker compose --profile registry up -d
-#   (o simplemente: docker compose --profile registry up -d  → usa latest)
 #
-# SOLO INFRA (DB + Redis + MinIO, útil para desarrollo):
+# SOLO INFRA (DB + Redis + MinIO para desarrollo sin Docker):
 #   docker compose up -d postgres redis minio
 # ─────────────────────────────────────────────────────────────
 
@@ -28,7 +28,7 @@ services:
     networks: [noteops_net]
     restart: unless-stopped
 
-  # ── Backend LOCAL (build desde ./backend) ─────────────────
+  # ── Backend LOCAL ─────────────────────────────────────────
   backend-local:
     profiles: [local]
     build:
@@ -50,7 +50,7 @@ services:
     networks: [noteops_net]
     restart: unless-stopped
 
-  # ── Frontend LOCAL (build desde ./frontend) ───────────────
+  # ── Frontend LOCAL ────────────────────────────────────────
   frontend-local:
     profiles: [local]
     build:
@@ -68,10 +68,10 @@ services:
     networks: [noteops_net]
     restart: unless-stopped
 
-  # ── Backend REGISTRY (imagen desde GHCR) ──────────────────
+  # ── Backend REGISTRY ──────────────────────────────────────
   backend-registry:
     profiles: [registry]
-    image: ghcr.io/${GITHUB_REPOSITORY:-johansgiraldo/noteops}/backend:${TAG:-latest}
+    image: ghcr.io/${GITHUB_REPOSITORY:-jsgiraldoh/noteops}/backend:${TAG:-latest}
     container_name: noteops_backend
     env_file: .env
     labels:
@@ -87,10 +87,10 @@ services:
     networks: [noteops_net]
     restart: unless-stopped
 
-  # ── Frontend REGISTRY (imagen desde GHCR) ─────────────────
+  # ── Frontend REGISTRY ─────────────────────────────────────
   frontend-registry:
     profiles: [registry]
-    image: ghcr.io/${GITHUB_REPOSITORY:-johansgiraldo/noteops}/frontend:${TAG:-latest}
+    image: ghcr.io/${GITHUB_REPOSITORY:-jsgiraldoh/noteops}/frontend:${TAG:-latest}
     container_name: noteops_frontend
     env_file: .env
     labels:
@@ -112,7 +112,8 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
     volumes:
       - pg_data:/var/lib/postgresql/data
-      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./infra/postgres/02_seed_data.sql:/docker-entrypoint-initdb.d/02_seed_data.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-noteops}"]
       interval: 5s
@@ -128,7 +129,7 @@ services:
     networks: [noteops_net]
     restart: unless-stopped
 
-  # ── MinIO (exportes) ──────────────────────────────────────
+  # ── MinIO ─────────────────────────────────────────────────
   minio:
     image: minio/minio
     container_name: noteops_minio

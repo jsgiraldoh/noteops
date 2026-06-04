@@ -1,25 +1,31 @@
-# Env
+# ── Env — nunca subir valores reales ─────────────────────────
 .env
 .env.local
+.env.*.local
+# .env.example SÍ se versiona — solo plantilla sin secretos
 
-# Go
+# ── Go ────────────────────────────────────────────────────────
 backend/bin/
 backend/tmp/
 *.exe
 
-# Node
+# ── Node ──────────────────────────────────────────────────────
 frontend/node_modules/
 frontend/.svelte-kit/
 frontend/build/
 
-# Python
+# ── Python ───────────────────────────────────────────────────
 workers/__pycache__/
 workers/.venv/
 *.pyc
 
-# Docker
+# ── Docker ───────────────────────────────────────────────────
 *.log
 
-# OS
+# ── Datos académicos privados ────────────────────────────────
+Planilla_de_Notas_2025_Giraldo*
+infra/postgres/02_seed_data.sql
+
+# ── OS ───────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
