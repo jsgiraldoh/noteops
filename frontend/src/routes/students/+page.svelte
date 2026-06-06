@@ -46,7 +46,7 @@
       students = students.map(s => s.id === updated.id ? updated : s);
       notify.success('Estudiante actualizado');
       editingId = null;
-    } catch (e: any) { saveError = e.message; notify.error(e.message); }
+    } catch (e: any) { saveError = e.message; }
     finally { saving = false; }
   }
 </script>

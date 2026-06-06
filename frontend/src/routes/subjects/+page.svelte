@@ -48,7 +48,7 @@
       subjects.update(list => list.map(s => s.id === updated.id ? updated : s));
       notify.success('Materia actualizada');
       editingId = null;
-    } catch (e: any) { saveError = e.message; notify.error(e.message); }
+    } catch (e: any) { saveError = e.message; }
     finally { saving = false; }
   }
 
@@ -68,7 +68,6 @@
       notify.success('Materia creada exitosamente');
     } catch (e: any) {
       createError = e.message;
-      notify.error(e.message);
     } finally {
       creating = false;
     }

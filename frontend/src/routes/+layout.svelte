@@ -22,7 +22,7 @@
     }
     if (token) {
       try {
-        const [list] = await Promise.all([subjectsApi.list()]);
+        const list = await subjectsApi.list();
         subjects.set(list);
         if (list.length && !$currentSubject) currentSubject.set(list[0]);
         // Restaurar nombre del usuario desde el token almacenado

@@ -72,9 +72,8 @@ func (h *Hub) tickAll() {
 				select {
 				case c.send <- payload:
 				default:
-					// canal lleno — cliente lento, desconectar
-					close(c.send)
-					delete(clients, c)
+					// canal lleno — cliente lento, saltamos este tick
+					// la goroutine de lectura detectará la desconexión y limpiará
 				}
 			}
 		}

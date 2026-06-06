@@ -57,6 +57,10 @@
       parseError = 'Solo se aceptan archivos .xlsx o .xls';
       return;
     }
+    if (file.size > 10 * 1024 * 1024) {
+      parseError = 'El archivo no puede superar 10 MB';
+      return;
+    }
     parsing = true;
     parseError = '';
     parsed = [];
