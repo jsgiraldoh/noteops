@@ -4,11 +4,35 @@ on:
   pull_request:
     branches: [main, develop]
   push:
-    branches: [develop]
+    branches: [main, develop]
+
+# Cancela ejecuciones anteriores de la misma rama/PR aún en curso
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
-  backend:
-    name: Backend — test & lint
+  # ── FASE 0 — Higiene ────────────────────────────────────────────────────────
+  secrets:
+    name: Secret scanning (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # historial completo para escanear todos los commits
+      - name: gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ── FASE 1 — Backend: lint + pruebas + dependencias ─────────────────────────
+  # Los pasos corren en orden: si go vet o las unit fallan (rápidas),
+  # no se gasta tiempo en las pruebas de integración (lentas, con Docker).
+  backend-test:
+    name: Backend — vet, unit, integration, vuln
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,15 +42,26 @@ jobs:
           go-version: '1.23'
           cache-dependency-path: backend/go.sum
 
-      - name: Run tests
-        working-directory: backend
-        run: go test ./... -race -cover -coverprofile=coverage.out
-
-      - name: Vet
+      - name: go vet
         working-directory: backend
         run: go vet ./...
 
-  frontend:
+      - name: Pruebas unitarias
+        working-directory: backend
+        run: go test ./... -race -cover
+
+      - name: Pruebas de integración (testcontainers)
+        working-directory: backend
+        run: go test -tags=integration ./internal/repository/... -count=1
+
+      - name: Análisis de dependencias (govulncheck)
+        working-directory: backend
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...
+
+  # ── FASE 1 — Frontend: type-check + build ───────────────────────────────────
+  frontend-check:
     name: Frontend — check & build
     runs-on: ubuntu-latest
     steps:
@@ -49,3 +84,122 @@ jobs:
       - name: Build
         working-directory: frontend
         run: npm run build
+
+  # ── FASE 2 — Análisis estático de código (SAST) ─────────────────────────────
+  # CodeQL analiza Go y TypeScript. Los resultados aparecen en
+  # Security → Code scanning. Gratis en repositorios públicos.
+  codeql:
+    name: CodeQL (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: go
+            build-mode: manual
+          - language: javascript-typescript
+            build-mode: none
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go
+        if: matrix.language == 'go'
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache-dependency-path: backend/go.sum
+
+      - name: Inicializar CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+
+      # El módulo Go vive en backend/, por eso compilamos manualmente
+      # en vez de usar autobuild (que busca go.mod en la raíz).
+      - name: Compilar Go para CodeQL
+        if: matrix.language == 'go'
+        working-directory: backend
+        run: go build ./...
+
+      - name: Analizar
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: /language:${{ matrix.language }}
+
+  # ── FASE 3-5 — Build, escaneo de imagen y publicación ───────────────────────
+  # Espera a que pasen TODOS los gates anteriores. Construye cada imagen UNA
+  # vez (load al daemon local), Trivy escanea esa misma imagen, y solo en
+  # push a main se publica :latest en GHCR. En PRs se construye y escanea
+  # pero NO se publica.
+  image:
+    name: Build, scan & publish images
+    runs-on: ubuntu-latest
+    needs: [secrets, backend-test, frontend-check, codeql]
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # ── Backend ──
+      - name: Build backend (local)
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          target: prod
+          load: true
+          tags: noteops-backend:ci
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
+
+      - name: Trivy — backend image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: noteops-backend:ci
+          severity: CRITICAL,HIGH
+          exit-code: '1'
+          ignore-unfixed: true # no bloquear por CVEs sin fix disponible
+
+      # ── Frontend ──
+      - name: Build frontend (local)
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          target: prod
+          load: true
+          tags: noteops-frontend:ci
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
+
+      - name: Trivy — frontend image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: noteops-frontend:ci
+          severity: CRITICAL,HIGH
+          exit-code: '1'
+          ignore-unfixed: true
+
+      # ── Publicación (solo push a main) ──
+      - name: Login to GHCR
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Tag & push :latest
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          REPO="ghcr.io/${{ github.repository }}"
+          docker tag noteops-backend:ci  "$REPO/backend:latest"
+          docker tag noteops-frontend:ci "$REPO/frontend:latest"
+          docker push "$REPO/backend:latest"
+          docker push "$REPO/frontend:latest"
