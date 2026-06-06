@@ -11,11 +11,11 @@ import (
 )
 
 type Service struct {
-	repo *repository.Repository
+	repo repository.Repo
 	db   *pgxpool.Pool
 }
 
-func New(repo *repository.Repository, db *pgxpool.Pool) *Service {
+func New(repo repository.Repo, db *pgxpool.Pool) *Service {
 	return &Service{repo: repo, db: db}
 }
 

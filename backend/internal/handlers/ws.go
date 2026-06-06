@@ -34,11 +34,11 @@ type client struct {
 type Hub struct {
 	mu       sync.RWMutex
 	sessions map[uuid.UUID]map[*client]bool
-	repo     *repository.Repository
+	repo     repository.Repo
 	svc      *service.Service
 }
 
-func NewHub(repo *repository.Repository, svc *service.Service) *Hub {
+func NewHub(repo repository.Repo, svc *service.Service) *Hub {
 	h := &Hub{
 		sessions: make(map[uuid.UUID]map[*client]bool),
 		repo:     repo,

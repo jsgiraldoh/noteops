@@ -15,13 +15,13 @@ import (
 )
 
 type Handler struct {
-	repo      *repository.Repository
+	repo      repository.Repo
 	svc       *service.Service
 	hub       *Hub
 	jwtSecret string
 }
 
-func New(repo *repository.Repository, svc *service.Service, hub *Hub, jwtSecret string) *Handler {
+func New(repo repository.Repo, svc *service.Service, hub *Hub, jwtSecret string) *Handler {
 	return &Handler{repo: repo, svc: svc, hub: hub, jwtSecret: jwtSecret}
 }
 
