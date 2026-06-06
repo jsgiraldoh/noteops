@@ -170,9 +170,17 @@ type ImportStructureRow struct {
 	ActivityWeight float64 `json:"activity_weight"`
 }
 
+type ImportGradeRow struct {
+	StudentCode  string  `json:"student_code"`
+	CutNumber    int     `json:"cut_number"`
+	ActivityName string  `json:"activity_name"`
+	Value        float64 `json:"value"`
+}
+
 type ImportRequest struct {
 	Students  []ImportStudentRow  `json:"students"`
 	Structure []ImportStructureRow `json:"structure"`
+	Grades    []ImportGradeRow    `json:"grades"`
 }
 
 type ImportResult struct {
@@ -180,6 +188,7 @@ type ImportResult struct {
 	StudentsEnrolled  int `json:"students_enrolled"`
 	CutsCreated       int `json:"cuts_created"`
 	ActivitiesCreated int `json:"activities_created"`
+	GradesImported    int `json:"grades_imported"`
 }
 
 type LoginRequest struct {

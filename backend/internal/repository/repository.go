@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -406,8 +407,10 @@ func (r *Repository) ImportSubjectData(ctx context.Context, subjectID uuid.UUID,
 
 	result := &models.ImportResult{}
 
-	// Insertar cortes y actividades agrupando por número de corte
+	// Mapa "cutNumber|activityName" → activityID (para vincular notas)
+	activityMap := map[string]uuid.UUID{}
 	cutIDs := map[int]uuid.UUID{}
+
 	for _, row := range req.Structure {
 		if _, exists := cutIDs[row.CutNumber]; !exists {
 			var cutID uuid.UUID
@@ -424,17 +427,23 @@ func (r *Repository) ImportSubjectData(ctx context.Context, subjectID uuid.UUID,
 			cutIDs[row.CutNumber] = cutID
 			result.CutsCreated++
 		}
-		_, err := tx.Exec(ctx,
+		var actID uuid.UUID
+		err := tx.QueryRow(ctx,
 			`INSERT INTO activities (cut_id, name, weight)
-			 VALUES ($1, $2, $3)`,
-			cutIDs[row.CutNumber], row.ActivityName, row.ActivityWeight)
+			 VALUES ($1, $2, $3)
+			 RETURNING id`,
+			cutIDs[row.CutNumber], row.ActivityName, row.ActivityWeight).
+			Scan(&actID)
 		if err != nil {
 			return nil, err
 		}
+		activityMap[fmt.Sprintf("%d|%s", row.CutNumber, row.ActivityName)] = actID
 		result.ActivitiesCreated++
 	}
 
-	// Insertar estudiantes e inscribirlos
+	// Mapa código → enrollmentID (para vincular notas)
+	enrollmentMap := map[string]uuid.UUID{}
+
 	for _, s := range req.Students {
 		var studentID uuid.UUID
 		err := tx.QueryRow(ctx,
@@ -449,17 +458,38 @@ func (r *Repository) ImportSubjectData(ctx context.Context, subjectID uuid.UUID,
 		}
 		result.StudentsCreated++
 
+		// DO UPDATE garantiza que siempre retorna el ID (nuevo o existente)
 		var enrollID uuid.UUID
 		err = tx.QueryRow(ctx,
 			`INSERT INTO enrollments (student_id, subject_id)
 			 VALUES ($1, $2)
-			 ON CONFLICT (student_id, subject_id) DO NOTHING
+			 ON CONFLICT (student_id, subject_id) DO UPDATE SET student_id=EXCLUDED.student_id
 			 RETURNING id`,
 			studentID, subjectID).
 			Scan(&enrollID)
-		if err == nil {
-			result.StudentsEnrolled++
+		if err != nil {
+			return nil, err
 		}
+		enrollmentMap[s.Code] = enrollID
+		result.StudentsEnrolled++
+	}
+
+	// Insertar notas si vienen en el payload
+	for _, g := range req.Grades {
+		actID, hasAct := activityMap[fmt.Sprintf("%d|%s", g.CutNumber, g.ActivityName)]
+		enrollID, hasEnroll := enrollmentMap[g.StudentCode]
+		if !hasAct || !hasEnroll {
+			continue
+		}
+		_, err := tx.Exec(ctx,
+			`INSERT INTO grades (enrollment_id, activity_id, value)
+			 VALUES ($1, $2, $3)
+			 ON CONFLICT (enrollment_id, activity_id) DO UPDATE SET value=EXCLUDED.value`,
+			enrollID, actID, g.Value)
+		if err != nil {
+			return nil, err
+		}
+		result.GradesImported++
 	}
 
 	if err := tx.Commit(ctx); err != nil {

@@ -14,9 +14,17 @@ export interface ImportStructureRow {
   activity_weight: number;
 }
 
+export interface ImportGradeRow {
+  student_code: string;
+  cut_number: number;
+  activity_name: string;
+  value: number;
+}
+
 export interface ImportPayload {
   students: ImportStudentRow[];
   structure: ImportStructureRow[];
+  grades: ImportGradeRow[];
 }
 
 export interface ImportResult {
@@ -24,6 +32,7 @@ export interface ImportResult {
   students_enrolled: number;
   cuts_created: number;
   activities_created: number;
+  grades_imported: number;
 }
 
 export const importApi = {

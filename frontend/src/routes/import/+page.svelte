@@ -1,7 +1,7 @@
 <script lang="ts">
   import { subjects } from '$lib/stores/subject';
   import { subjectsApi } from '$lib/api/subjects';
-  import { importApi, type ImportStudentRow, type ImportStructureRow } from '$lib/api/import';
+  import { importApi, type ImportStudentRow, type ImportStructureRow, type ImportGradeRow } from '$lib/api/import';
   import * as XLSX from 'xlsx';
 
   // ─── Tipos ────────────────────────────────────────────────────────────────
@@ -13,6 +13,7 @@
     faculty: string;
     students: ImportStudentRow[];
     structure: ImportStructureRow[];
+    grades: ImportGradeRow[];
     error?: string;
   }
 
@@ -31,10 +32,12 @@
   let statuses: ImportStatus[] = [];
   let parseError = '';
   let importDone = false;
+  let importGrades = true; // toggle: importar notas además de la estructura
 
   $: hasPreview = parsed.length > 0;
-  $: totalStudents = parsed.reduce((s, p) => s + p.students.length, 0);
+  $: totalStudents  = parsed.reduce((s, p) => s + p.students.length, 0);
   $: totalActivities = parsed.reduce((s, p) => s + p.structure.length, 0);
+  $: totalGrades    = parsed.reduce((s, p) => s + p.grades.length, 0);
 
   // ─── Carga de archivo ─────────────────────────────────────────────────────
   function handleDrop(e: DragEvent) {
@@ -137,18 +140,44 @@
         }
       }
 
-      // Estudiantes desde R14 en adelante (índice 13+)
+      // Estudiantes y notas desde R14 en adelante (índice 13+)
       const students: ImportStudentRow[] = [];
+      const grades: ImportGradeRow[] = [];
+
+      // Rangos de columnas de actividades por corte (mismo orden que structure)
+      const gradeRanges = [
+        { cutNum: 1, start: 6,  end: 11 },
+        { cutNum: 2, start: 14, end: 19 },
+        { cutNum: 3, start: 22, end: 27 }
+      ];
+
       for (let i = 13; i < rows.length; i++) {
         const row = rows[i] ?? [];
         const code = String(row[1] ?? '').trim();
         const name = String(row[2] ?? '').trim().toUpperCase();
         if (!code || !name || !/^\d{5,}/.test(code)) continue;
+
         students.push({ full_name: name, email: `${code}@noteops.edu`, code });
+
+        // Extraer notas de cada columna de actividad
+        for (const { cutNum, start, end } of gradeRanges) {
+          for (let c = start; c <= end; c++) {
+            const actName   = String(headersRow[c] ?? '').trim();
+            const actWeight = Number(weightsRow[c] ?? 0);
+            const rawVal    = row[c];
+            // Solo importar si la actividad existe en la estructura y tiene valor numérico
+            if (actName && actWeight > 0 && rawVal !== '' && rawVal !== null && rawVal !== undefined) {
+              const val = Number(rawVal);
+              if (!isNaN(val)) {
+                grades.push({ student_code: code, cut_number: cutNum, activity_name: actName, value: val });
+              }
+            }
+          }
+        }
       }
 
       if (subjectName && (students.length > 0 || structure.length > 0)) {
-        result.push({ sheetName, subjectName, period, group, faculty, students, structure });
+        result.push({ sheetName, subjectName, period, group, faculty, students, structure, grades });
       }
     }
 
@@ -182,16 +211,18 @@
         statuses[i] = { ...statuses[i], message: 'Importando estudiantes y estructura…' };
         statuses = [...statuses];
 
-        // 2. Importar estudiantes y estructura
+        // 2. Importar estudiantes, estructura y (opcionalmente) notas
         const result = await importApi.submit(created.id, {
           students: p.students,
-          structure: p.structure
+          structure: p.structure,
+          grades: importGrades ? p.grades : []
         });
 
+        const gradeMsg = result.grades_imported > 0 ? ` · ${result.grades_imported} notas` : '';
         statuses[i] = {
           subjectName: p.subjectName,
           state: 'done',
-          message: `${result.students_created} estudiantes · ${result.cuts_created} cortes · ${result.activities_created} actividades`
+          message: `${result.students_created} estudiantes · ${result.cuts_created} cortes · ${result.activities_created} actividades${gradeMsg}`
         };
       } catch (err: any) {
         statuses[i] = { subjectName: p.subjectName, state: 'error', message: err.message };
@@ -264,7 +295,16 @@
           Se crearán <strong>{parsed.length}</strong> materia(s) con
           <strong>{totalStudents}</strong> estudiantes y
           <strong>{totalActivities}</strong> actividades en total.
+          {#if totalGrades > 0}
+            El archivo contiene <strong>{totalGrades}</strong> registros de notas.
+          {/if}
         </p>
+        {#if totalGrades > 0}
+          <label class="toggle-label">
+            <input type="checkbox" bind:checked={importGrades} />
+            Importar notas existentes en el Excel ({totalGrades} registros)
+          </label>
+        {/if}
         <button class="btn-primary" on:click={runImport} disabled={importing}>
           {importing ? 'Importando…' : '⬆ Importar todo'}
         </button>
@@ -319,6 +359,9 @@
             <div class="sp-counts">
               <span class="count-badge">{p.students.length} estudiantes</span>
               <span class="count-badge">{p.structure.length} actividades</span>
+              {#if p.grades.length > 0}
+                <span class="count-badge count-grades">{p.grades.length} notas</span>
+              {/if}
             </div>
           </div>
 
@@ -409,6 +452,8 @@ h2 { font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; }
 .action-card { display: flex; flex-direction: column; gap: 0.5rem; }
 .action-summary { font-size: 0.85rem; color: var(--text2); margin-bottom: 0.25rem; }
 .action-summary strong { color: var(--text); }
+.toggle-label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text); cursor: pointer; padding: 0.4rem 0; }
+.toggle-label input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
 
 /* Done card */
 .done-card { border-color: var(--accent2); display: flex; flex-direction: column; gap: 0.5rem; }
@@ -439,6 +484,7 @@ h2 { font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; }
 .meta-item { font-size: 0.78rem; color: var(--text2); }
 .sp-counts { display: flex; flex-direction: column; gap: 0.25rem; align-items: flex-end; flex-shrink: 0; }
 .count-badge { background: var(--bg3); border: 1px solid var(--border); border-radius: 999px; font-size: 0.72rem; padding: 0.15rem 0.5rem; white-space: nowrap; }
+.count-grades { background: #14401e33; border-color: #166534; color: #4ade80; }
 
 .sp-details { margin-top: 0.5rem; }
 .sp-details summary { font-size: 0.82rem; color: var(--text2); cursor: pointer; padding: 0.25rem 0; }
