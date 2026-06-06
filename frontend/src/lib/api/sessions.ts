@@ -1,7 +1,7 @@
 import { api } from './client';
 
 export interface Session { id: string; subject_id: string; starts_at: string; duration_min: number; slot_min: number; room: string; active: boolean; }
-export interface Slot { id: string; session_id: string; number: number; starts_at: string; duration_min: number; student_id: string | null; reserved_at: string | null; }
+export interface Slot { id: string; session_id: string; number: number; starts_at: string; duration_min: number; student_id?: string | null; reserved_at?: string | null; }
 
 export const sessionsApi = {
   create: (data: { subject_id: string; starts_at: string; duration_min: number; slot_min: number; room?: string }) =>

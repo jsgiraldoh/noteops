@@ -12,8 +12,8 @@
   {#each slots as slot (slot.id)}
     <button
       class="slot"
-      class:taken={slot.student_id !== null}
-      disabled={slot.student_id !== null}
+      class:taken={!!slot.student_id}
+      disabled={!!slot.student_id}
       on:click={() => onReserve(slot)}
     >
       <span class="num">#{slot.number}</span>
@@ -36,10 +36,11 @@
   padding: 1rem 0.5rem; cursor: pointer; transition: border-color 0.15s, background 0.15s;
 }
 .slot:not(:disabled):hover { border-color: var(--accent); background: var(--bg3); }
-.slot.taken { background: #fee2e2; border-color: #fca5a5; cursor: not-allowed; }
-.slot.taken .num  { color: #dc2626; }
-.slot.taken .time { color: #ef4444; }
-.slot.taken .dur  { color: #dc2626; }
+.slot.taken { background: #fecaca; border: 2px solid #ef4444; cursor: not-allowed; opacity: 1; }
+.slot.taken .num  { color: #991b1b; }
+.slot.taken .time { color: #dc2626; }
+.slot.taken .dur  { color: #991b1b; }
+.slot.taken :global(.badge-red) { background: #dc2626; color: #fff; }
 .num { font-size: 1.3rem; font-weight: 700; color: var(--text); }
 .time { font-size: 0.85rem; color: var(--accent); font-weight: 600; }
 .dur { font-size: 0.75rem; color: var(--text2); }
