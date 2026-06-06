@@ -156,6 +156,32 @@ type ReserveSlotRequest struct {
 	StudentID string `json:"student_id" binding:"required,uuid"`
 }
 
+type ImportStudentRow struct {
+	FullName string `json:"full_name"`
+	Email    string `json:"email"`
+	Code     string `json:"code"`
+}
+
+type ImportStructureRow struct {
+	CutNumber      int     `json:"cut_number"`
+	CutName        string  `json:"cut_name"`
+	CutWeight      float64 `json:"cut_weight"`
+	ActivityName   string  `json:"activity_name"`
+	ActivityWeight float64 `json:"activity_weight"`
+}
+
+type ImportRequest struct {
+	Students  []ImportStudentRow  `json:"students"`
+	Structure []ImportStructureRow `json:"structure"`
+}
+
+type ImportResult struct {
+	StudentsCreated   int `json:"students_created"`
+	StudentsEnrolled  int `json:"students_enrolled"`
+	CutsCreated       int `json:"cuts_created"`
+	ActivitiesCreated int `json:"activities_created"`
+}
+
 type LoginRequest struct {
 	Email    string `json:"email"    binding:"required,email"`
 	Password string `json:"password" binding:"required"`

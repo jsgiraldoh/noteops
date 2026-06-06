@@ -397,6 +397,77 @@ func (r *Repository) GetSlotsBySession(ctx context.Context, sessionID uuid.UUID)
 	return slots, nil
 }
 
+func (r *Repository) ImportSubjectData(ctx context.Context, subjectID uuid.UUID, req models.ImportRequest) (*models.ImportResult, error) {
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback(ctx)
+
+	result := &models.ImportResult{}
+
+	// Insertar cortes y actividades agrupando por número de corte
+	cutIDs := map[int]uuid.UUID{}
+	for _, row := range req.Structure {
+		if _, exists := cutIDs[row.CutNumber]; !exists {
+			var cutID uuid.UUID
+			err := tx.QueryRow(ctx,
+				`INSERT INTO cuts (subject_id, number, name, weight)
+				 VALUES ($1, $2, $3, $4)
+				 ON CONFLICT (subject_id, number) DO UPDATE SET name=EXCLUDED.name, weight=EXCLUDED.weight
+				 RETURNING id`,
+				subjectID, row.CutNumber, row.CutName, row.CutWeight).
+				Scan(&cutID)
+			if err != nil {
+				return nil, err
+			}
+			cutIDs[row.CutNumber] = cutID
+			result.CutsCreated++
+		}
+		_, err := tx.Exec(ctx,
+			`INSERT INTO activities (cut_id, name, weight)
+			 VALUES ($1, $2, $3)`,
+			cutIDs[row.CutNumber], row.ActivityName, row.ActivityWeight)
+		if err != nil {
+			return nil, err
+		}
+		result.ActivitiesCreated++
+	}
+
+	// Insertar estudiantes e inscribirlos
+	for _, s := range req.Students {
+		var studentID uuid.UUID
+		err := tx.QueryRow(ctx,
+			`INSERT INTO students (full_name, email, code)
+			 VALUES ($1, $2, $3)
+			 ON CONFLICT (email) DO UPDATE SET full_name=EXCLUDED.full_name, code=EXCLUDED.code
+			 RETURNING id`,
+			s.FullName, s.Email, s.Code).
+			Scan(&studentID)
+		if err != nil {
+			return nil, err
+		}
+		result.StudentsCreated++
+
+		var enrollID uuid.UUID
+		err = tx.QueryRow(ctx,
+			`INSERT INTO enrollments (student_id, subject_id)
+			 VALUES ($1, $2)
+			 ON CONFLICT (student_id, subject_id) DO NOTHING
+			 RETURNING id`,
+			studentID, subjectID).
+			Scan(&enrollID)
+		if err == nil {
+			result.StudentsEnrolled++
+		}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 func (r *Repository) ReserveSlot(ctx context.Context, slotID, studentID uuid.UUID) (*models.Slot, error) {
 	s := &models.Slot{}
 	err := r.db.QueryRow(ctx,

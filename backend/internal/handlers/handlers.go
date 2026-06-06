@@ -407,6 +407,26 @@ func (h *Handler) ReserveSlot(c *gin.Context) {
 	c.JSON(http.StatusOK, slot)
 }
 
+// POST /api/subjects/:id/import
+func (h *Handler) ImportSubjectData(c *gin.Context) {
+	subjectID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid subject id"})
+		return
+	}
+	var req models.ImportRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	result, err := h.repo.ImportSubjectData(c.Request.Context(), subjectID, req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, result)
+}
+
 // GET /api/health
 func (h *Handler) Health(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})

@@ -1,0 +1,7 @@
+# Override para arrancar con datos de semestre (02_seed_data.sql)
+# Uso: make fresh-seed
+# Requiere que exista infra/postgres/02_seed_data.sql
+services:
+  postgres:
+    volumes:
+      - ./infra/postgres/02_seed_data.sql:/docker-entrypoint-initdb.d/02_seed_data.sql:ro

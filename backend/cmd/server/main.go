@@ -75,6 +75,7 @@ func main() {
 	{
 		api.GET("/subjects", h.GetSubjects)
 		api.POST("/subjects", h.CreateSubject)
+		api.POST("/subjects/:id/import", h.ImportSubjectData)
 		api.PATCH("/subjects/:id", h.UpdateSubject)
 		api.DELETE("/subjects/:id", h.DeleteSubject)
 		api.GET("/subjects/:id/students", h.GetStudentsBySubject)
