@@ -1,481 +1,254 @@
+<div align="center">
+
 # NoteOPs
+
+### El sistema de notas donde el estudiante demuestra que entiende — antes de sustentar.
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![CI](https://github.com/jsgiraldoh/noteops/actions/workflows/ci.yml/badge.svg)](../../actions/workflows/ci.yml)
 [![Release](https://github.com/jsgiraldoh/noteops/actions/workflows/release.yml/badge.svg)](../../actions/workflows/release.yml)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#guía-de-contribución)
 
-> Sistema open source de gestión de notas académicas con reloj de clase en tiempo real, reserva de espacios y cálculo automático de nota definitiva.
+[![Go](https://img.shields.io/badge/Go-1.23-00ADD8?logo=go&logoColor=white)](#stack-técnico)
+[![SvelteKit](https://img.shields.io/badge/SvelteKit-2.x-FF3E00?logo=svelte&logoColor=white)](#stack-técnico)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](#stack-técnico)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](#inicio-rápido)
 
-**Autor:** Johan Sebastian Giraldo Hurtado · **Licencia:** Apache 2.0
+**Gestión de notas académicas con reloj de clase en tiempo real y reserva de turnos por API.**
+
+Hecho con propósito educativo por **Johan Sebastian Giraldo Hurtado** · Licencia **Apache 2.0**
+
+</div>
+
+---
+
+## La aplicación de un vistazo
+
+Durante la clase, el reloj corre en pantalla grande y los estudiantes reservan su turno para exponer. El docente administra todo desde una interfaz limpia, en tiempo real.
+
+<div align="center">
+
+### ⏱️ El reloj de clase, en vivo
+
+![Sesión activa con el reloj en cuenta regresiva](images/6.png)
+*Una sesión activa: el tiempo restante de la clase, grande y visible para todos.*
+
+</div>
+
+<table>
+<tr>
+<td width="50%">
+
+![Turno reservado](images/7.png)
+**Turno reservado.** Cuando un estudiante separa su espacio, el turno se marca como *Ocupado* al instante.
+
+</td>
+<td width="50%">
+
+![Tabla de notas con cálculo automático](images/2.png)
+**Notas que se calculan solas.** Registra por corte y actividad; la nota definitiva se recalcula automáticamente.
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+![Configurar sesión](images/4.png)
+**Configura tu clase.** Define la duración total y el tamaño de cada turno: 5, 10, 20, 30, 60 o 120 minutos.
+
+</td>
+<td width="50%">
+
+![Espacios de la sesión](images/5.png)
+**Turnos listos para reservar.** NoteOPs genera los espacios automáticamente según tu configuración.
+
+</td>
+</tr>
+</table>
+
+<details>
+<summary><b>Ver más capturas</b> — login, estudiantes, materias e importación de planillas</summary>
+
+<br>
+
+<table>
+<tr>
+<td width="50%">
+
+![Login](images/1.png)
+**Acceso del docente.**
+
+</td>
+<td width="50%">
+
+![Sesión de clase](images/3.png)
+**Tu espacio de sesión**, listo para arrancar.
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+![Gestión de estudiantes](images/8.png)
+**Estudiantes** — registra e inscribe en segundos.
+
+</td>
+<td width="50%">
+
+![Gestión de materias](images/9.png)
+**Materias** — cada una con su ID para compartir con la clase.
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+![Importar planilla](images/10.png)
+**Importa tu Excel** con arrastrar y soltar.
+
+</td>
+<td width="50%">
+
+![Preview de importación](images/11.png)
+**Detección automática** de materias, estudiantes, actividades y notas.
+
+</td>
+</tr>
+</table>
+
+</details>
+
+---
+
+## ¿Por qué NoteOPs?
+
+Hoy existe un problema silencioso en las aulas: muchos estudiantes ya **no repasan ni interiorizan los conceptos**. Le piden a la inteligencia artificial que haga el trabajo por ellos, lo entregan, y el aprendizaje nunca ocurre. El conocimiento se delega — no se adquiere.
+
+**NoteOPs le da la vuelta a eso.**
+
+La idea es simple y poderosa: para poder sustentar su trabajo, el estudiante primero tiene que **separar su turno haciendo él mismo una petición HTTP a la API**. Con un `curl` desde la terminal o desde la web, pero hecho por él. Ese pequeño gesto cambia todo:
+
+- 🧠 **Antes de exponer, ya está aprendiendo.** Entiende qué es una API, un endpoint, una petición, un identificador. Conocimiento técnico real, no delegado.
+- 🎯 **La sustentación deja de ser un trámite** y se vuelve un reto práctico, técnico y hasta divertido.
+- 👩‍🏫 **El docente administra; el estudiante demuestra.** Reservar el turno es la primera prueba de que entiende; sustentar el trabajo es la segunda.
+
+> **Aprender haciendo.** En vez de pedirle a la IA que resuelva, el estudiante ejecuta, observa y comprende. NoteOPs convierte un requisito administrativo —apartar un turno— en una oportunidad de aprendizaje genuina.
+
+Y para el docente, además, es la herramienta que reemplaza la frágil planilla de Excel: cálculo automático de la nota definitiva, reloj de clase en tiempo real e importación de su planilla existente en segundos.
+
+---
+
+## Empieza ahora
+
+<div align="center">
+
+**¿Eres docente?** Levanta NoteOPs en tu máquina en menos de 5 minutos → [Inicio rápido](#inicio-rápido)
+
+**¿Eres estudiante?** Anímate al reto: aprende a separar tu turno con una petición real → [Cómo un estudiante separa su turno](#cómo-un-estudiante-separa-su-turno)
+
+**¿Te gusta el open source?** Es Go + SvelteKit + PostgreSQL, todo en Docker. Las contribuciones son bienvenidas → [Guía de contribución](#guía-de-contribución)
+
+⭐ **Si la idea te gusta, deja una estrella** en [github.com/jsgiraldoh/noteops](https://github.com/jsgiraldoh/noteops)
+
+</div>
 
 ---
 
 ## Tabla de contenidos
 
-- [¿Qué es NoteOPs?](#qué-es-noteops)
-- [Stack técnico](#stack-técnico)
-- [Arquitectura](#arquitectura)
-- [Inicio rápido — Local (build desde código)](#inicio-rápido--local-build-desde-código)
-- [Inicio rápido — Registry (imágenes de GitHub)](#inicio-rápido--registry-imágenes-de-github)
-- [Variables de entorno](#variables-de-entorno)
-- [Base de datos](#base-de-datos)
+- [La aplicación de un vistazo](#la-aplicación-de-un-vistazo)
+- [¿Por qué NoteOPs?](#por-qué-noteops)
+- [Cómo un estudiante separa su turno](#cómo-un-estudiante-separa-su-turno)
 - [API Reference](#api-reference)
-- [API para estudiantes — Reserva de turnos](#api-para-estudiantes--reserva-de-turnos)
-- [WebSocket — Reloj en tiempo real](#websocket--reloj-en-tiempo-real)
-- [CI/CD y releases](#cicd-y-releases)
-- [Equipo de desarrollo (Claude Code)](#equipo-de-desarrollo-claude-code)
+- [Arquitectura](#arquitectura)
+- [Stack técnico](#stack-técnico)
+- [Inicio rápido](#inicio-rápido)
+- [Importar tu planilla](#importar-tu-planilla)
 - [Comandos útiles](#comandos-útiles)
-- [Guía de contribución](#guía-de-contribución)
+- [CI/CD y seguridad](#cicd-y-seguridad)
 - [Hoja de ruta](#hoja-de-ruta)
+- [Equipo de desarrollo (Claude Code)](#equipo-de-desarrollo-claude-code)
+- [Guía de contribución](#guía-de-contribución)
+- [Licencia](#licencia)
 
 ---
 
-## ¿Qué es NoteOPs?
+## Cómo un estudiante separa su turno
 
-NoteOPs digitaliza el proceso de registro y seguimiento de notas académicas universitarias. Reemplaza las planillas Excel con una interfaz web colaborativa que permite:
+> 🎓 **Esta es la sección estrella de NoteOPs.** Aquí el estudiante deja de ser espectador: para apartar su turno de sustentación tiene que hacer **su propia petición a la API**. No te preocupes si nunca has usado una terminal — sigue los pasos y, sin darte cuenta, habrás aprendido cómo funciona una API real.
 
-- **Registrar notas** por corte y actividad, con pesos configurables por materia
-- **Calcular automáticamente** la nota definitiva usando una vista SQL en tiempo real
-- **Ver un reloj grande** durante la clase que muestra el tiempo restante de la sesión
-- **Reservar espacios** de 5, 10, 20 minutos o la sesión completa para grupos de estudiantes
-- **Agregar reflexiones** y comentarios de retroalimentación por cada nota
-- **Ejecutarse en red local** (aula de clase) o en un servidor en la nube
+Todo el flujo de reserva es **público**: no necesitas usuario ni contraseña. Solo necesitas dos datos que te entrega tu docente:
 
----
+| Dato | Qué es | Cambia |
+|---|---|---|
+| `SUBJECT_ID` | Identificador de la materia | Fijo durante todo el semestre |
+| `STUDENT_ID` | Tu identificador como estudiante | Fijo durante todo el semestre |
 
-## Stack técnico
+Vas a usar `curl`, una herramienta de línea de comandos que envía peticiones HTTP. Viene incluida en macOS y Linux, y en Windows 10/11 modernos. Reemplaza los valores entre llaves `{...}` por los tuyos.
 
-| Capa | Tecnología | Versión | Por qué |
-|---|---|---|---|
-| **Backend** | Go + Gin | 1.23 / v1.10 | Concurrencia nativa para WebSocket, binario estático de ~15 MB en imagen `scratch`, tipado fuerte en DTOs |
-| **Frontend** | SvelteKit | 2.x | Compila a vanilla JS sin runtime — bundle mínimo, variables de entorno embebidas en build time |
-| **Base de datos** | PostgreSQL | 16 | Modelo relacional, vista SQL para nota definitiva calculada automáticamente, `pgcrypto` para hashing de contraseñas |
-| **Cache / WS** | Redis | 7 | Estado de sesiones WebSocket entre instancias del backend |
-| **Archivos** | MinIO | latest | Exportes de planillas, compatible con S3, self-hosted |
-| **Proxy** | Traefik | v3 | SSL automático con Let's Encrypt, routing por hostname y path, zero-config con Docker labels |
-| **Contenedores** | Docker + Compose | latest | Un comando levanta todo el stack — local y producción idénticos |
-| **DB Admin** | Adminer | 4 | Interfaz web minimalista (~10 MB) para consultar PostgreSQL vía navegador — cero configuración, siempre disponible en `:8081` |
+### Paso 0 — Encuentra la sesión activa
 
----
-
-## Arquitectura
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                      Red local / Internet                    │
-│           Navegador / App móvil (HTTP o HTTPS)               │
-└───────────────────────┬─────────────────────────────────────┘
-                        │ :80 / :443
-                ┌───────▼────────┐
-                │    Traefik v3   │  ← SSL, routing por path y hostname
-                │  Reverse Proxy  │
-                └──┬─────────┬───┘
-                   │         │
-          ┌────────▼──┐  ┌───▼────────┐
-          │ Frontend   │  │  Backend   │
-          │ SvelteKit  │  │  Go + Gin  │
-          │ :3000      │  │  :8080     │
-          └────────────┘  └──┬──────┬─┘
-                             │      │ WebSocket
-                    ┌────────▼─┐  ┌─▼──────────┐
-                    │PostgreSQL│  │   Redis     │
-                    │  :5432   │  │   :6379     │
-                    └──────────┘  └────────────┘
-```
-
-**Flujo de una nota registrada:**
-
-```
-Docente en el navegador
-  → SvelteKit (POST /api/grades)
-    → Traefik (routing por path /api)
-      → Go/Gin Handler (valida JWT, binding JSON)
-        → Repository (UPSERT en PostgreSQL)
-          → Vista student_final_grades (recalcula definitiva automáticamente)
-        ← Grade struct como JSON
-      ← 200 OK
-    ← store de Svelte actualizado
-  ← tabla de notas re-renderizada en pantalla
-```
-
-### Estructura del repositorio
-
-```
-noteops/
-├── backend/                 Go + Gin
-│   ├── cmd/server/          Punto de entrada (main.go)
-│   ├── go.mod               Módulo Go con dependencias declaradas
-│   └── internal/
-│       ├── config/          Carga de variables de entorno (.env + OS)
-│       ├── handlers/        HTTP handlers + WebSocket hub
-│       ├── middleware/       JWT auth + request logger
-│       ├── models/          Structs de dominio y DTOs
-│       ├── repository/      Queries SQL con pgx (sin ORM)
-│       └── service/         Lógica de negocio (slots, notas agregadas)
-├── frontend/                SvelteKit + TypeScript
-│   └── src/
-│       ├── lib/api/         Clientes HTTP tipados (subjects, grades, sessions)
-│       ├── lib/stores/      Estado reactivo (auth, clock, subject)
-│       ├── lib/components/  Clock, SlotGrid, GradeCell, modales
-│       └── routes/          / (notas) · /session · /students · /login
-├── workers/                 Python — agentes IA (futuro)
-├── infra/
-│   ├── traefik/             traefik.yml — configuración del proxy
-│   └── postgres/
-│       ├── init.sql         Schema completo: tablas, índices, vista de nota definitiva, usuario admin
-│       └── 02_seed_data.sql Datos académicos de ejemplo (excluido de git — privado)
-├── .claude/                 Skills del equipo de desarrollo (Claude Code)
-│   ├── CLAUDE.md
-│   └── skills/              dev · qa · architect · docs · release
-└── .github/workflows/       ci.yml · cd.yml · release.yml
-```
-
----
-
-## Inicio rápido — Local (build desde código)
-
-**Prerequisitos:** Docker 24+ y Docker Compose v2 instalados.
-
-### Linux / macOS
-
-```bash
-# 1. Clonar el repositorio
-git clone https://github.com/jsgiraldoh/noteops.git
-cd noteops
-
-# 2. Configurar variables de entorno
-cp .env.example .env
-# Editar .env — al menos cambiar JWT_SECRET y DB_PASSWORD
-
-# 3. Agregar hostname local (solo una vez)
-echo "127.0.0.1  noteops.local" | sudo tee -a /etc/hosts
-
-# 4. Levantar con build desde código fuente
-docker compose --profile local up -d --build
-
-# 5. Verificar que todo está corriendo
-docker compose ps
-```
-
-### Windows
-
-```powershell
-# 1. Clonar el repositorio
-git clone https://github.com/jsgiraldoh/noteops.git
-cd noteops
-
-# 2. Configurar variables de entorno
-copy .env.example .env
-# Editar .env — al menos cambiar JWT_SECRET y DB_PASSWORD
-
-# 3. Agregar hostname local (abrir Notepad como administrador y editar):
-#    C:\Windows\System32\drivers\etc\hosts
-#    Agregar al final:  127.0.0.1  noteops.local
-#
-#    O desde PowerShell como administrador:
-Add-Content -Path "C:\Windows\System32\drivers\etc\hosts" -Value "127.0.0.1  noteops.local"
-
-# 4. Levantar con build desde código fuente
-docker compose --profile local up -d --build
-```
-
-La aplicación estará disponible en **http://noteops.local**
-
-**Credenciales por defecto:**
-
-| Campo | Valor |
-|---|---|
-| Email | `admin@noteops.local` |
-| Contraseña | `admin123` |
-
-> Cambiar la contraseña en producción accediendo directamente a la base de datos.
-
-> El primer build toma 2–3 minutos mientras descarga dependencias Go y Node.
-
-### Cargar datos de un periodo académico
-
-Si tienes un archivo `02_seed_data.sql` con datos reales (generado desde una planilla Excel), colócalo en `infra/postgres/` antes de levantar el stack. PostgreSQL lo ejecutará automáticamente en el primer inicio:
-
-```bash
-# Con datos de seed ya en infra/postgres/02_seed_data.sql
-docker compose --profile local down -v   # elimina el volumen anterior
-docker compose --profile local up -d --build
-```
-
-El flag `-v` es necesario para que PostgreSQL vuelva a ejecutar los scripts de inicialización desde cero.
-
----
-
-## Inicio rápido — Registry (imágenes de GitHub)
-
-Usa las imágenes pre-construidas publicadas en GHCR. No necesitas el código fuente.
-
-```bash
-# 1. Descargar solo los archivos necesarios
-curl -O https://raw.githubusercontent.com/jsgiraldoh/noteops/main/docker-compose.yml
-curl -O https://raw.githubusercontent.com/jsgiraldoh/noteops/main/.env.example
-mkdir -p infra/postgres infra/traefik
-curl -o infra/postgres/init.sql \
-  https://raw.githubusercontent.com/jsgiraldoh/noteops/main/infra/postgres/init.sql
-curl -o infra/traefik/traefik.yml \
-  https://raw.githubusercontent.com/jsgiraldoh/noteops/main/infra/traefik/traefik.yml
-
-# 2. Configurar entorno
-cp .env.example .env   # editar .env
-
-# 3. Hostname local (ver sección anterior)
-
-# 4. Levantar con imágenes del registry
-docker compose --profile registry up -d
-
-# Para una versión específica:
-TAG=v1.0.0 docker compose --profile registry up -d
-```
-
-### Imágenes disponibles en GHCR
-
-```
-ghcr.io/jsgiraldoh/noteops/backend:latest
-ghcr.io/jsgiraldoh/noteops/frontend:latest
-ghcr.io/jsgiraldoh/noteops/backend:v1.0.0
-ghcr.io/jsgiraldoh/noteops/frontend:v1.0.0
-```
-
----
-
-## Variables de entorno
-
-Copia `.env.example` a `.env` y ajusta los valores marcados como requeridos:
-
-| Variable | Requerida | Default | Descripción |
-|---|---|---|---|
-| `DATABASE_URL` | ✅ | — | URL completa de conexión a PostgreSQL. Formato: `postgres://user:pass@host:5432/db?sslmode=disable` |
-| `DB_USER` | ✅ | `noteops` | Usuario de la base de datos |
-| `DB_PASSWORD` | ✅ | `secret` | **Cambiar en producción** |
-| `DB_NAME` | ❌ | `noteops` | Nombre de la base de datos |
-| `JWT_SECRET` | ✅ | — | Secreto para firmar tokens JWT. Mínimo 32 caracteres. Generar: `openssl rand -hex 32` |
-| `REDIS_URL` | ❌ | `redis://redis:6379` | URL de conexión a Redis |
-| `APP_ENV` | ❌ | `development` | `development` activa logs detallados. `production` activa modo release de Gin |
-| `APP_PORT` | ❌ | `8080` | Puerto interno del backend |
-| `APP_DOMAIN` | ❌ | `noteops.local` | Dominio principal usado por Traefik para el routing |
-| `GITHUB_REPOSITORY` | ❌ | `jsgiraldoh/noteops` | Ruta del repositorio para construir las URLs de imágenes GHCR |
-| `TAG` | ❌ | `latest` | Versión de imagen a desplegar con el perfil `registry` |
-| `MINIO_ROOT_USER` | ❌ | `minioadmin` | Usuario administrador de MinIO |
-| `MINIO_ROOT_PASSWORD` | ❌ | `minioadmin` | **Cambiar en producción** |
-| `PUBLIC_API_URL` | ❌ | `http://noteops.local/api` | URL del API REST consumida por el frontend. **Variable de build time**: se embebe en el JS compilado en el Dockerfile — no se puede cambiar en runtime sin reconstruir la imagen |
-| `PUBLIC_WS_URL` | ❌ | `ws://noteops.local` | URL del WebSocket consumida por el frontend. Misma restricción de build time que `PUBLIC_API_URL` |
-
-> **Nota sobre `PUBLIC_*`:** SvelteKit embebe estas variables en el JavaScript compilado durante `npm run build`. Si necesitas cambiar la URL del API después del build, debes reconstruir la imagen frontend pasando los `ARG` correspondientes al `docker build`.
-
----
-
-## Base de datos
-
-El schema se aplica automáticamente al primer `docker compose up` ejecutando los archivos en `infra/postgres/` en orden alfabético:
-
-| Archivo | Propósito |
-|---|---|
-| `init.sql` → montado como `01_schema.sql` | Crea todas las tablas, índices, la vista `student_final_grades` e inserta el usuario administrador por defecto |
-| `02_seed_data.sql` *(opcional, excluido de git)* | Datos de un periodo académico real — estudiantes, materias, cortes, actividades y notas |
-
-### Entidades principales
-
-```
-users → subjects → cuts → activities
-students → enrollments ─┐
-                         └→ grades (valor + comentario por actividad)
-sessions → slots (espacios de tiempo reservables)
-```
-
-### Vista de nota definitiva
-
-PostgreSQL calcula la nota definitiva automáticamente sin lógica en el backend:
-
-```sql
-SELECT * FROM student_final_grades WHERE subject_id = 'uuid';
--- → { enrollment_id, student_id, subject_id, final_grade: 4.75 }
-```
-
-La fórmula: `ROUND( Σ (nota × peso_actividad × peso_corte), 2 )`.
-
-### Usuario administrador por defecto
-
-El `init.sql` crea un usuario administrador usando `pgcrypto` para el hash de la contraseña (bcrypt, compatible con el backend Go):
-
-```sql
-INSERT INTO users (full_name, email, password, role)
-VALUES ('Admin', 'admin@noteops.local', crypt('admin123', gen_salt('bf')), 'admin')
-ON CONFLICT (email) DO NOTHING;
-```
-
----
-
-## API Reference
-
-Los endpoints marcados con 🔓 son **públicos** — no requieren token. El resto requieren `Authorization: Bearer <token>`.
-
-### Autenticación
-
-```bash
-# 🔓 Health check (público)
-curl http://noteops.local/api/health
-# → { "status": "ok" }
-
-# 🔓 Login — devuelve JWT válido por 24 horas
-curl -X POST http://noteops.local/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"admin@noteops.local","password":"admin123"}'
-# → { "token": "eyJ...", "user": { "id": "uuid", "role": "admin" } }
-```
-
-### Materias
-
-```bash
-# Listar materias del docente autenticado
-GET /api/subjects
-# → [ { "id": "uuid", "name": "Sistemas Operativos", "period": "2025-1", ... } ]
-```
-
-### Estudiantes
-
-```bash
-# Registrar estudiante
-POST /api/students
-{ "full_name": "ARCE PAREJA SEBASTIAN", "email": "s.arce@uni.edu.co", "code": "240220211012" }
-
-# Inscribir en una materia
-POST /api/subjects/:id/enroll
-{ "student_id": "uuid" }
-
-# Listar estudiantes de una materia
-GET /api/subjects/:id/students
-```
-
-### Notas
-
-```bash
-# Registrar o actualizar nota (upsert por enrollment_id + activity_id)
-POST /api/grades
-{
-  "enrollment_id": "uuid",
-  "activity_id": "uuid",
-  "value": 4.5,
-  "comment": "Buena entrega"
-}
-
-# Agregar o editar comentario de retroalimentación
-PATCH /api/grades/:id/comment
-{ "comment": "Mejorar documentación del código" }
-
-# Notas completas de una materia (cortes + actividades + estudiantes)
-GET /api/subjects/:id/grades
-# → { "cuts": [...], "students": [...], "final_grades": [...] }
-
-# Nota definitiva calculada por estudiante
-GET /api/subjects/:id/final-grades
-# → [ { "student_id": "uuid", "final_grade": 4.75 } ]
-```
-
-### Sesiones y espacios
-
-```bash
-# Crear sesión con espacios automáticos
-POST /api/sessions
-{
-  "subject_id": "uuid",
-  "starts_at": "2025-03-15T08:00:00Z",
-  "duration_min": 120,
-  "slot_min": 20,
-  "room": "Sala 201"
-}
-# → { "session": {...}, "slots": [ { "number": 1, "starts_at": "..." }, ... ] }
-
-# Activar sesión (inicia el reloj WebSocket)
-POST /api/sessions/:id/activate
-
-# 🔓 Obtener sesión activa de una materia (público — sin token)
-GET /api/sessions/active?subject_id=uuid
-
-# 🔓 Ver espacios disponibles y reservados (público — sin token)
-GET /api/sessions/:id/slots
-
-# 🔓 Reservar un espacio para un estudiante (público — sin token)
-POST /api/sessions/:id/slots/:slotId/reserve
-{ "student_id": "uuid" }
-```
-
----
-
-## API para estudiantes — Reserva de turnos
-
-Esta sección es para **estudiantes** que quieran practicar peticiones HTTP con `curl`. No se requiere cuenta ni token — el docente activa la sesión y les comparte el `SESSION_ID` y su `STUDENT_ID`.
-
-### Qué son los slots
-
-Cuando el docente crea una sesión de clase, el sistema genera automáticamente una lista de **espacios de tiempo** (slots) para que los estudiantes reserven su turno de exposición. Cada slot tiene un número, hora de inicio y duración. Un slot con `student_id: null` está libre; con un UUID está ocupado.
-
-### Paso 0 — Obtener la sesión activa
-
-El docente te comparte el `SUBJECT_ID` de la materia. Con ese dato obtienes el `SESSION_ID` del día:
+Tu docente activa la sesión al iniciar la clase. Con el `SUBJECT_ID` averiguas cuál es la sesión de hoy:
 
 ```bash
 curl http://noteops.local/api/sessions/active?subject_id={SUBJECT_ID}
 ```
 
-Respuesta:
+Respuesta (HTTP 200):
 
 ```json
 {
-  "id": "656a54a4-ab4b-40fc-b398-08ee562f928c",
-  "subject_id": "b83dd5ac-cf57-45ca-815a-da9169585b36",
-  "starts_at": "2026-06-06T00:29:24Z",
+  "id": "f1a2b3c4-0000-1111-2222-333344445555",
+  "subject_id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+  "starts_at": "2025-04-10T14:00:00Z",
   "duration_min": 120,
-  "slot_min": 5,
+  "slot_min": 20,
   "room": "Sala 201",
   "active": true
 }
 ```
 
-El campo `id` es tu `SESSION_ID`. Si recibes `404` la sesión aún no ha sido activada por el docente.
+El campo **`id`** es tu `SESSION_ID` — guárdalo para los siguientes pasos.
 
-### Paso 1 — Ver los slots disponibles
+> Si recibes **HTTP 404**, la sesión todavía no está activa. Espera a que tu docente la inicie.
+
+### Paso 1 — Mira los turnos disponibles
+
+Con el `SESSION_ID` listas todos los turnos (slots) de la clase:
 
 ```bash
 curl http://noteops.local/api/sessions/{SESSION_ID}/slots
 ```
 
-Respuesta de ejemplo:
+Respuesta (HTTP 200) — un arreglo de turnos:
 
 ```json
 [
   {
-    "id": "b3ca8405-5e13-452a-b224-f6a7dd2c2b60",
-    "session_id": "656a54a4-ab4b-40fc-b398-08ee562f928c",
+    "id": "11111111-aaaa-bbbb-cccc-000000000001",
     "number": 1,
-    "starts_at": "2026-06-06T00:29:24Z",
-    "duration_min": 5,
-    "student_id": "584176d9-46d1-467f-a35e-ca04f04eb781",
-    "reserved_at": "2026-06-06T00:31:19Z"
+    "starts_at": "2025-04-10T14:00:00Z",
+    "duration_min": 20,
+    "student_id": "99999999-...-student-ocupado",
+    "reserved_at": "2025-04-10T13:45:10Z"
   },
   {
-    "id": "94537d73-7f56-4008-b993-cd43e6da5d7e",
-    "session_id": "656a54a4-ab4b-40fc-b398-08ee562f928c",
+    "id": "22222222-aaaa-bbbb-cccc-000000000002",
     "number": 2,
-    "starts_at": "2026-06-06T00:34:24Z",
-    "duration_min": 5,
+    "starts_at": "2025-04-10T14:20:00Z",
+    "duration_min": 20,
     "student_id": null,
     "reserved_at": null
   }
 ]
 ```
 
-Los slots con `"student_id": null` están **libres**. Copia el `id` del que quieras reservar.
+Un turno está **libre** cuando su `student_id` es `null`. Elige uno libre y copia su **`id`** — ese será tu `SLOT_ID`.
 
-### Paso 2 — Reservar tu turno
+### Paso 2 — Reserva tu turno
 
 ```bash
-curl -X POST \
-  http://noteops.local/api/sessions/{SESSION_ID}/slots/{SLOT_ID}/reserve \
+curl -X POST http://noteops.local/api/sessions/{SESSION_ID}/slots/{SLOT_ID}/reserve \
   -H "Content-Type: application/json" \
   -d '{"student_id": "{TU_STUDENT_ID}"}'
 ```
@@ -484,167 +257,478 @@ Respuesta exitosa (HTTP 200):
 
 ```json
 {
-  "id": "94537d73-7f56-4008-b993-cd43e6da5d7e",
-  "session_id": "656a54a4-ab4b-40fc-b398-08ee562f928c",
+  "id": "22222222-aaaa-bbbb-cccc-000000000002",
   "number": 2,
-  "starts_at": "2026-06-06T00:34:24Z",
-  "duration_min": 5,
-  "student_id": "{TU_STUDENT_ID}",
-  "reserved_at": "2026-06-06T00:42:39Z"
+  "starts_at": "2025-04-10T14:20:00Z",
+  "duration_min": 20,
+  "student_id": "tu-student-id-aqui",
+  "reserved_at": "2025-04-10T13:52:30Z"
 }
 ```
 
-Si el slot ya fue reservado por otro estudiante recibirás **HTTP 409 Conflict**. Vuelve al Paso 1, elige otro slot libre e intenta de nuevo.
+🎉 **¡Listo! Tu turno quedó reservado.** El campo `reserved_at` confirma la hora exacta en que lo apartaste.
 
-### Datos que te entrega el docente
+### Si algo sale mal
 
-| Dato | Descripción |
-|---|---|
-| `SESSION_ID` | UUID de la sesión activa del día |
-| `STUDENT_ID` | Tu UUID en el sistema (el docente lo asigna al inscribirte) |
+| Código | Significado | Qué hacer |
+|---|---|---|
+| `409 Conflict` | El turno ya fue reservado por otro, o la sesión ya no existe | Vuelve al Paso 1 y elige otro turno libre |
+| `400 Bad Request` | Tu `STUDENT_ID` no existe o tiene formato inválido | Verifica el dato con tu docente |
+| `404 Not Found` | La sesión no está activa | Espera a que el docente la inicie |
 
-> El `SESSION_ID` cambia en cada clase. El `STUDENT_ID` es fijo durante todo el semestre.
+> 💡 **¿Prefieres la interfaz gráfica?** También puedes reservar desde la web. Pero te animamos a hacerlo con `curl`: acabas de ejecutar una petición `GET` y un `POST` a una API REST real, leer una respuesta JSON e interpretar códigos HTTP. Eso es exactamente lo que hace una aplicación por dentro — y ahora lo hiciste tú.
 
 ---
 
-## WebSocket — Reloj en tiempo real
+## API Reference
 
-Una vez activada una sesión, cada cliente conectado recibe un tick por segundo:
+La URL base local es `http://noteops.local/api`. Los endpoints marcados como 🔓 **públicos** no requieren autenticación; el resto requieren la cabecera `Authorization: Bearer <token>` obtenida en el login.
 
+### Autenticación
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| 🔓 `GET` | `/api/health` | Verifica que el servicio está arriba |
+| 🔓 `POST` | `/api/auth/login` | Inicia sesión y devuelve un JWT |
+
+```bash
+# Login
+curl -X POST http://noteops.local/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "docente@universidad.edu.co", "password": "••••••••"}'
 ```
-ws://noteops.local/ws/session/:session_id
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIs...",
+  "user": { "id": "uuid", "full_name": "Docente Ejemplo", "role": "teacher" }
+}
 ```
 
-**Payload JSON:**
+Usa el `token` en las siguientes peticiones protegidas:
+
+```bash
+curl http://noteops.local/api/subjects \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIs..."
+```
+
+### Materias
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| `GET` | `/api/subjects` | Lista las materias del docente |
+| `POST` | `/api/subjects` | Crea una materia |
+| `PATCH` | `/api/subjects/:id` | Actualiza una materia |
+| `DELETE` | `/api/subjects/:id` | Elimina una materia (en cascada) |
+| `GET` | `/api/subjects/:id/students` | Estudiantes inscritos en la materia |
+| `GET` | `/api/subjects/:id/grades` | Notas completas: cortes, actividades y estudiantes |
+| `GET` | `/api/subjects/:id/final-grades` | Nota definitiva por estudiante |
+| `POST` | `/api/subjects/:id/enroll` | Inscribe un estudiante en la materia |
+| `POST` | `/api/subjects/:id/import` | Importa una planilla completa (ver [Importar tu planilla](#importar-tu-planilla)) |
+
+```bash
+# Crear materia
+curl -X POST http://noteops.local/api/subjects \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Sistemas Operativos", "period": "2025-1", "group_name": "A", "faculty": "Ingeniería"}'
+```
+
+### Estudiantes
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| `POST` | `/api/students` | Crea un estudiante |
+| `PATCH` | `/api/students/:id` | Actualiza nombre, correo o código |
+
+### Notas
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| `POST` | `/api/grades` | Registra o actualiza una nota (upsert) |
+| `PATCH` | `/api/grades/:id/comment` | Edita el comentario de una nota |
+
+```bash
+# Registrar una nota (0.0 a 5.0)
+curl -X POST http://noteops.local/api/grades \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"enrollment_id": "uuid", "activity_id": "uuid", "value": 4.5, "comment": "Buen trabajo"}'
+```
+
+La **nota definitiva** se recalcula automáticamente en la base de datos (vista `student_final_grades`) a partir de los pesos de cada corte y actividad. No hay que calcularla a mano.
+
+### Sesiones y turnos
+
+| Método | Ruta | Acceso | Descripción |
+|---|---|---|---|
+| `POST` | `/api/sessions` | 🔒 | Crea una sesión y genera sus turnos |
+| `POST` | `/api/sessions/:id/activate` | 🔒 | Activa la sesión (arranca el reloj) |
+| `POST` | `/api/sessions/:id/deactivate` | 🔒 | Finaliza la sesión (la elimina junto con sus turnos) |
+| `GET` | `/api/sessions/active?subject_id=uuid` | 🔓 | Sesión activa de una materia |
+| `GET` | `/api/sessions/:id/slots` | 🔓 | Lista los turnos de una sesión |
+| `POST` | `/api/sessions/:id/slots/:slotID/reserve` | 🔓 | Reserva un turno (ver [Cómo un estudiante separa su turno](#cómo-un-estudiante-separa-su-turno)) |
+
+```bash
+# Crear una sesión de 120 min con turnos de 20 min → genera 6 turnos
+curl -X POST http://noteops.local/api/sessions \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"subject_id": "uuid", "starts_at": "2025-04-10T14:00:00Z", "duration_min": 120, "slot_min": 20, "room": "Sala 201"}'
+```
+
+```json
+{
+  "session": { "id": "uuid", "duration_min": 120, "slot_min": 20, "active": false },
+  "slots": [
+    { "number": 1, "starts_at": "2025-04-10T14:00:00Z", "duration_min": 20, "student_id": null },
+    { "number": 2, "starts_at": "2025-04-10T14:20:00Z", "duration_min": 20, "student_id": null }
+  ]
+}
+```
+
+### WebSocket — el reloj en tiempo real
+
+| Protocolo | Ruta | Acceso | Descripción |
+|---|---|---|---|
+| 🔓 `WS` | `/ws/session/:id` | 🔓 | Emite el estado del reloj de la sesión, **un tick por segundo** |
+
+Cada tick es un mensaje JSON con esta forma:
 
 ```json
 {
   "session_id": "uuid",
-  "elapsed_sec": 1800,
-  "remaining_sec": 5400,
+  "elapsed_sec": 642,
+  "remaining_sec": 6558,
   "duration_min": 120,
   "is_active": true
 }
 ```
 
-El componente `Clock.svelte` consume este store y muestra el reloj en pantalla grande. Cambia a amarillo en los últimos 5 minutos y a rojo cuando llega a cero.
+| Campo | Significado |
+|---|---|
+| `elapsed_sec` | Segundos transcurridos desde el inicio |
+| `remaining_sec` | Segundos restantes (0 si la sesión expiró) |
+| `duration_min` | Duración total configurada |
+| `is_active` | `false` cuando la sesión expiró o fue finalizada |
+
+El componente `Clock.svelte` consume este flujo para pintar el reloj grande de la clase.
 
 ---
 
-## CI/CD y releases
+## Arquitectura
 
-### Flujo de ramas
+NoteOPs es un conjunto de servicios orquestados con Docker Compose detrás de un único reverse proxy (Traefik). El navegador solo habla con Traefik, que enruta por path y hostname hacia el frontend o el backend.
 
 ```
-feature/* ──PR──▶ develop ──PR──▶ main ──tag v*.*.*──▶ GHCR + GitHub Release
-                    │
-                 CI automático
-              (lint + tests en cada PR)
+                         Navegador / curl
+                               │  :80 / :443
+                    ┌──────────▼───────────┐
+                    │      Traefik v3       │  routing por host y path, TLS
+                    └────┬─────────────┬────┘
+                /api,/ws │             │ /
+              ┌──────────▼──┐     ┌────▼─────────┐
+              │  Backend     │     │  Frontend    │
+              │  Go + Gin    │     │  SvelteKit   │
+              │  :8080       │     │  :3000       │
+              └───┬──────┬───┘     └──────────────┘
+        SQL (pgx)│      │ estado WS
+          ┌──────▼──┐ ┌─▼────────┐
+          │PostgreSQL│ │  Redis   │
+          │  :5432   │ │  :6379   │
+          └──────────┘ └──────────┘
+
+  Servicios auxiliares:
+    • MinIO    :9001  almacenamiento de archivos (compatible S3)
+    • Adminer  :8081  administrador web de la base de datos (desarrollo)
 ```
 
-### Workflows de GitHub Actions
+### Flujo de una request — registrar una nota
 
-| Archivo | Disparo | Qué hace |
-|---|---|---|
-| `ci.yml` | Pull Request | Tests Go con `-race` + type-check TypeScript + build frontend |
-| `cd.yml` | Push a `main` | Build imágenes Docker + deploy SSH en servidor de producción |
-| `release.yml` | Tag `v*.*.*` | Build + push a GHCR con tags semver + crea GitHub Release |
+```
+Docente en el navegador
+  └─▶ SvelteKit  (POST /api/grades)
+       └─▶ Traefik  (enruta /api → backend)
+            └─▶ Go/Gin handler  (valida JWT, hace binding del JSON)
+                 └─▶ Repository  (UPSERT con pgx en PostgreSQL)
+                      └─▶ Vista student_final_grades  (recalcula la definitiva)
+                 ◀── Grade como JSON
+            ◀── 200 OK
+       ◀── el store de Svelte se actualiza
+  ◀── la tabla de notas se re-renderiza
+```
 
-### Crear un release
+El cálculo de la nota definitiva **no vive en el backend**: es una vista SQL (`student_final_grades`) que suma `valor × peso_actividad × peso_corte`. La base de datos es la única fuente de verdad del resultado.
+
+### Estructura del repositorio
+
+```
+noteops/
+├── backend/                  Go + Gin — API REST + WebSocket
+│   ├── cmd/server/           Punto de entrada (main.go, rutas)
+│   └── internal/
+│       ├── config/           Carga de variables de entorno
+│       ├── handlers/         HTTP handlers, hub WebSocket, errores seguros
+│       ├── middleware/       Autenticación JWT, logger
+│       ├── models/           Structs de dominio y DTOs
+│       ├── repository/       Queries SQL con pgx (interfaz Repo + tests)
+│       └── service/          Lógica de negocio (slots, reloj, agregados)
+├── frontend/                 SvelteKit + TypeScript
+│   └── src/
+│       ├── lib/api/          Clientes HTTP tipados
+│       ├── lib/stores/       Estado reactivo (auth, clock, session, notify)
+│       ├── lib/components/   Clock, SlotGrid, GradeCell, modales
+│       └── routes/           /, /session, /students, /subjects, /import, /login
+├── workers/                  Python — agentes IA (futuro)
+├── infra/
+│   ├── traefik/              traefik.yml
+│   └── postgres/             init.sql · rollback_to_admin.sql · 02_seed_data.sql*
+├── .github/workflows/        ci.yml · release.yml
+├── .claude/                  CLAUDE.md + skills del equipo (roles)
+├── docker-compose.yml        Stack completo (perfiles local / registry)
+├── docker-compose.seed.yml   Override para cargar datos de ejemplo
+└── Makefile                  Atajos de desarrollo y operación
+
+* 02_seed_data.sql es opcional y está excluido de git (datos privados).
+```
+
+---
+
+## Stack técnico
+
+| Capa | Tecnología | Versión | Por qué |
+|---|---|---|---|
+| **Backend** | Go + Gin | 1.23 | Concurrencia nativa para el WebSocket, binario estático de ~15 MB en imagen `scratch`, tipado fuerte |
+| **Acceso a datos** | pgx | v5 | Driver PostgreSQL de alto rendimiento, sin ORM — control total del SQL |
+| **Frontend** | SvelteKit | 2.x | Compila a JS sin runtime; bundle mínimo y reactividad simple |
+| **Base de datos** | PostgreSQL | 16 | Vista SQL para la nota definitiva, `pgcrypto` para el hash de contraseñas |
+| **Cache / WS** | Redis | 7 | Estado de sesiones WebSocket entre instancias |
+| **Archivos** | MinIO | latest | Compatible con S3, self-hosted |
+| **Proxy** | Traefik | v3 | TLS automático con Let's Encrypt, routing por labels de Docker |
+| **DB Admin** | Adminer | 4 | UI web ligera (~10 MB) para inspeccionar la base en desarrollo |
+| **Contenedores** | Docker + Compose | 24+ / v2 | Un comando levanta todo; entornos local y producción idénticos |
+
+### Decisiones técnicas clave
+
+**Go + Gin para el backend.** El hub de WebSocket mantiene una goroutine por cliente conectado durante la clase; Go maneja esa concurrencia sin bloquear. Además, el binario compilado produce una imagen Docker de ~15 MB (base `scratch`) y el tipado estático atrapa en compilación errores que en JavaScript solo aparecerían en runtime.
+
+**pgx sin ORM.** Las queries se escriben a mano con parámetros posicionales (`$1, $2`). El precio es más código; la ganancia es transparencia total sobre qué SQL se ejecuta, cero magia, y poder apoyar el cálculo de notas en una vista de PostgreSQL en lugar de en el código.
+
+**SvelteKit para el frontend.** Compila a vanilla JS sin enviar un runtime al navegador, lo que produce un bundle pequeño ideal para el aula. Su modelo de stores reactivos encaja naturalmente con el reloj en tiempo real alimentado por WebSocket.
+
+---
+
+## Inicio rápido
+
+**Prerequisitos:** Docker 24+ y Docker Compose v2.
+
+### Linux / macOS
 
 ```bash
-# Asegurarse de estar en main con todo mergeado
-git checkout main && git pull
+# 1. Clonar
+git clone https://github.com/jsgiraldoh/noteops.git
+cd noteops
 
-# Crear tag y publicar — GitHub Actions construye y publica las imágenes
-make release VERSION=v1.0.0
+# 2. Configurar entorno (al menos cambia JWT_SECRET y DB_PASSWORD)
+cp .env.example .env
+
+# 3. Hostname local (una sola vez)
+echo "127.0.0.1  noteops.local" | sudo tee -a /etc/hosts
+
+# 4. Levantar
+make up
 ```
 
-Publica automáticamente:
-- `ghcr.io/jsgiraldoh/noteops/backend:v1.0.0` y `:latest`
-- `ghcr.io/jsgiraldoh/noteops/frontend:v1.0.0` y `:latest`
+### Windows (PowerShell como administrador)
 
-### Secrets necesarios en GitHub
+```powershell
+git clone https://github.com/jsgiraldoh/noteops.git
+cd noteops
+copy .env.example .env
+Add-Content -Path "C:\Windows\System32\drivers\etc\hosts" -Value "127.0.0.1  noteops.local"
+docker compose --profile local up -d --build
+```
 
-En `Settings → Secrets and variables → Actions`:
+La aplicación queda en **http://noteops.local** y Adminer en **http://localhost:8081**.
 
-| Secret | Para qué |
+**Credenciales por defecto:**
+
+| Campo | Valor |
 |---|---|
-| `SERVER_HOST` | IP del servidor para deploy SSH |
-| `SERVER_USER` | Usuario SSH del servidor |
-| `SSH_PRIVATE_KEY` | Llave privada SSH para el deploy |
+| Email | `admin@noteops.local` |
+| Contraseña | `admin123` |
 
-El `GITHUB_TOKEN` para GHCR es automático — no necesita configuración adicional.
+> Cambia la contraseña del admin y el `JWT_SECRET` antes de exponer el sistema.
+
+### Modos de arranque
+
+| Comando | Qué hace |
+|---|---|
+| `make up` | Build local **conservando** los datos existentes |
+| `make fresh` | Arranque **limpio**: borra el volumen y deja solo el schema + el usuario admin |
+| `make fresh-seed` | Arranque con datos de ejemplo desde `infra/postgres/02_seed_data.sql` |
+
+### Variables de entorno
+
+| Variable | Requerida | Default | Descripción |
+|---|---|---|---|
+| `DATABASE_URL` | ✅ | — | Conexión a PostgreSQL: `postgres://user:pass@host:5432/db?sslmode=disable` |
+| `JWT_SECRET` | ✅ | — | Secreto para firmar JWT. Mínimo 32 caracteres. Genera con `openssl rand -hex 32` |
+| `APP_ENV` | ❌ | `development` | `production` activa el modo release de Gin |
+| `APP_PORT` | ❌ | `8080` | Puerto interno del backend |
+| `REDIS_URL` | ❌ | `redis://redis:6379` | Conexión a Redis |
+| `PUBLIC_API_URL` | ❌ | `http://noteops.local/api` | URL del API embebida en el frontend (build time) |
+| `PUBLIC_WS_URL` | ❌ | `ws://noteops.local` | URL del WebSocket embebida en el frontend (build time) |
 
 ---
 
-## Equipo de desarrollo (Claude Code)
+## Importar tu planilla
 
-El directorio `.claude/` contiene skills para Claude Code que definen el comportamiento de cada rol:
+NoteOPs lee la planilla de Excel que ya usas y crea todo automáticamente. Sube el archivo desde la sección **Importar** de la interfaz (endpoint `POST /api/subjects/:id/import`).
 
-| Skill | Rol | Cuándo invocarlo |
-|---|---|---|
-| `skills/dev` | Developer | Crear PRs, implementar endpoints, componentes Svelte |
-| `skills/qa` | QA Engineer | Tests unitarios e integración del backend Go |
-| `skills/architect` | Arquitecto | Actualizar README, documentar decisiones técnicas |
-| `skills/docs` | Ing. de Requisitos | Godoc, JSDoc, ADRs de arquitectura |
-| `skills/release` | Release Engineer | Versionar, publicar releases, actualizar CHANGELOG |
+**Formato esperado** — una hoja por materia, con la estructura institucional:
+
+| Ubicación | Contenido |
+|---|---|
+| Hoja | Una por materia (el nombre de la hoja es la materia) |
+| Fila 6, col E | Nombre del espacio académico |
+| Fila 8 | Período y grupo |
+| Fila 12 | Porcentajes (pesos) de actividades y cortes |
+| Fila 14 en adelante | Listado de estudiantes (código y nombre) |
+
+El importador detecta y crea:
+
+- **Materias** con su período, grupo y facultad
+- **Estudiantes** e inscripciones
+- **Estructura de notas**: cortes y actividades con sus pesos
+- **Notas existentes** (opcional)
+
+Al cargar el archivo verás un **preview por materia** antes de confirmar. Puedes elegir entre dos modos:
+
+1. **Solo estructura** — crea materias, estudiantes, cortes y actividades, sin notas.
+2. **Estructura + notas** — además importa las calificaciones ya registradas en el Excel.
+
+> El cálculo de la nota definitiva se valida contra la planilla original: el caso real del estudiante de referencia da exactamente `4.75`, igual que en Excel.
 
 ---
 
 ## Comandos útiles
 
 ```bash
-# Desarrollo
-make up               # Levantar stack completo con build local
-make dev              # Solo infra (DB, Redis, MinIO) — útil para desarrollo sin Docker
-make logs             # Logs en tiempo real de todos los servicios
-make shell-db         # Abrir psql en el contenedor de postgres
-# Adminer — administrador web de base de datos
-# Abrir http://localhost:8081 · Sistema: PostgreSQL · Servidor: postgres · Usuario: noteops · Contraseña: secret
+# ── Entorno ──────────────────────────────────────────────
+make up             # Build local conservando datos
+make fresh          # Arranque limpio (schema + admin)
+make fresh-seed     # Arranque con datos de ejemplo
+make dev            # Solo infra (DB, Redis, MinIO)
+make down           # Apagar todos los servicios
+make logs           # Logs en tiempo real
+make ps             # Estado de los contenedores
 
-# Testing
-make test             # go test ./... -race -cover + npm run check
+# ── Base de datos ────────────────────────────────────────
+make shell-db       # Abrir psql en el contenedor de postgres
+make rollback       # Limpiar la BD dejando solo el usuario admin
 
-# Producción
-make deploy TAG=v1.0.0      # Desplegar versión específica desde registry
-make release VERSION=v1.0.0  # Crear tag y disparar release en GitHub Actions
+# ── Calidad ──────────────────────────────────────────────
+make test             # Tests unitarios backend + check del frontend
+make test-integration # Tests de integración con testcontainers (requiere Docker)
+
+# ── Imágenes y release ───────────────────────────────────
+make build          # Build local de las imágenes Docker
+make push           # Push de imágenes a GHCR (requiere login)
+make release VERSION=v1.0.0   # Crea el tag y dispara el workflow de release
 ```
 
 ---
 
-## Guía de contribución
+## CI/CD y seguridad
 
-1. Fork del repositorio
-2. Crear rama desde `develop`: `git checkout -b feature/mi-funcionalidad`
-3. Implementar cambios siguiendo las convenciones (Conventional Commits, ver `.claude/CLAUDE.md`)
-4. `make test` debe pasar sin errores
-5. Abrir Pull Request hacia `develop` con descripción completa
+El pipeline de integración continua (`.github/workflows/ci.yml`) corre en cada Pull Request y en cada push a `main`/`develop`, con la seguridad integrada en fases ordenadas:
 
-Ver [CONTRIBUTING.md](CONTRIBUTING.md) para el flujo detallado y [CHANGELOG.md](CHANGELOG.md) para el historial de versiones.
+```
+Fase 0   secrets         gitleaks (escaneo de secretos en el historial)
+Fase 1   backend-test    go vet → unit → integration → govulncheck
+         frontend-check  npm ci → check → build
+Fase 2   codeql          SAST de Go y TypeScript
+                              │
+Fase 3-5 image  ◀─────────────┘   build (una vez) → Trivy → push :latest (solo main)
+```
+
+El job `image` espera a que pasen **todos** los gates anteriores. En un Pull Request las imágenes se construyen y escanean pero **no se publican**; solo un push a `main` publica `:latest` en GHCR. Las versiones etiquetadas (`vX.Y.Z`) las publica `release.yml` al crear un tag.
+
+> **No hay deployment automático.** El despliegue continuo se retiró del pipeline; las imágenes quedan disponibles en GHCR para desplegarlas donde quieras.
+
+### Gates de seguridad
+
+| Gate | Herramienta | Acción |
+|---|---|---|
+| Secretos | gitleaks | **Bloquea** |
+| Pruebas unitarias e integración | go test | **Bloquea** |
+| Dependencias Go | govulncheck | **Bloquea** (solo vulns en código realmente usado) |
+| Imágenes Docker | Trivy (CRITICAL/HIGH) | **Bloquea**, ignora CVEs sin parche disponible |
+| Análisis de código | CodeQL | Reporta a *Security → Code scanning* |
+
+Todas las herramientas son open source y no requieren cuentas ni tokens de pago — CodeQL es gratuito en repositorios públicos.
 
 ---
 
 ## Hoja de ruta
 
-| Versión | Estado | Funcionalidad |
+| Estado | Funcionalidad |
+|---|---|
+| ✅ | Backend Go + Gin: materias, estudiantes, cortes, actividades, notas |
+| ✅ | Cálculo automático de la nota definitiva (vista SQL) |
+| ✅ | Frontend SvelteKit: notas, estudiantes, materias |
+| ✅ | Sesiones de clase con reloj en tiempo real (WebSocket) |
+| ✅ | Reserva pública de turnos por API (el reto del estudiante) |
+| ✅ | Importación de planillas Excel (estructura + notas) |
+| ✅ | CI con seguridad: gitleaks, govulncheck, CodeQL, Trivy |
+| ✅ | Tests unitarios y de integración (testcontainers) |
+| ⏳ | Exportar notas a Excel compatible con el formato institucional |
+| ⏳ | Autenticación completa: registro de docentes y cambio de contraseña |
+| ⏳ | Endurecer producción: restringir CORS y validar el origen del WebSocket |
+| ⏳ | Workers Python: análisis de notas con agentes de IA |
+
+---
+
+## Equipo de desarrollo (Claude Code)
+
+NoteOPs se desarrolla con un equipo de roles definidos como *skills* de Claude Code en `.claude/skills/`. Cada rol tiene un propósito y se invoca según la tarea:
+
+| Rol | Skill | Responsabilidad |
 |---|---|---|
-| **v0.1** | ✅ | Backend Go: estudiantes, materias, cortes, notas, sesiones, slots |
-| **v0.2** | ✅ | Frontend SvelteKit: notas, sesión con reloj, estudiantes |
-| **v0.3** | ✅ | CI/CD GitHub Actions + registry GHCR + skills Claude Code |
-| **v0.4** | ✅ | Fix build Docker (GONOSUMDB), variables `PUBLIC_*` en build time, carga de materias post-login |
-| **v1.0** | Pendiente | Exportar planilla Excel compatible con formato de la institución |
-| **v1.1** | Pendiente | Auth completa: registro de docentes, cambio de contraseña desde el frontend |
-| **v1.2** | Pendiente | Historial de cambios por nota, trazabilidad completa |
-| **v2.0** | Pendiente | Workers Python: análisis de notas con agentes IA |
+| Developer | `dev` | Implementa cambios en backend y frontend |
+| QA Engineer | `qa` | Tests unitarios y de integración |
+| Arquitecto | `architect` | Mantiene el README y las decisiones técnicas |
+| Ing. de Documentación | `docs` | Documenta código, endpoints y ADRs |
+| Release Engineer | `release` | Versionado SemVer y publicación de releases |
+| Diseñador UX/UI | `ux` | Consistencia visual y experiencia de uso |
+| Security Engineer | `security` | Auditoría de vulnerabilidades y fallos de seguridad |
+| DevSecOps Engineer | `devsecops` | Seguridad en el pipeline CI/CD |
+| Marketing & Community | `marketing` | Copys, anuncios y gestión de la comunidad |
+
+---
+
+## Guía de contribución
+
+Las contribuciones son bienvenidas. El proyecto trabaja con **trunk-based development** sobre `main`.
+
+1. Haz un fork del repositorio.
+2. Crea tu rama desde `main`: `git checkout -b feature/mi-aporte`.
+3. Sigue las convenciones del proyecto (**Conventional Commits**: `feat:`, `fix:`, `docs:`, `test:`, `chore:`, `ci:`).
+4. Asegúrate de que `make test` pase sin errores.
+5. Abre un Pull Request describiendo el qué y el por qué.
+
+Al abrir el PR, el CI ejecutará automáticamente los gates de seguridad y las pruebas. Consulta `.claude/CLAUDE.md` para las convenciones detalladas del proyecto y `CONTRIBUTING.md` para el flujo completo.
 
 ---
 
 ## Licencia
 
+Distribuido bajo la licencia **Apache 2.0**.
+
 ```
 Copyright 2025 Johan Sebastian Giraldo Hurtado
 
 Licensed under the Apache License, Version 2.0.
-See LICENSE file for full terms.
+Consulta el archivo LICENSE para los términos completos.
 ```
