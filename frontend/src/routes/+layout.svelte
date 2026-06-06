@@ -3,11 +3,12 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
-  import { user, isLoggedIn } from '$lib/stores/auth';
   import { restoreToken } from '$lib/api/auth';
   import { subjectsApi } from '$lib/api/subjects';
   import { subjects, currentSubject } from '$lib/stores/subject';
   import { activeSession } from '$lib/stores/session';
+  import { sessionsApi } from '$lib/api/sessions';
+  import { connectClock } from '$lib/stores/clock';
 
   const PUBLIC = ['/login'];
 
@@ -22,12 +23,27 @@
         const list = await subjectsApi.list();
         subjects.set(list);
         if (list.length && !$currentSubject) currentSubject.set(list[0]);
+
+        // Verificar si la sesión persistida en localStorage sigue activa
+        if ($activeSession) {
+          try {
+            const fresh = await sessionsApi.getActive($activeSession.subject_id);
+            if (fresh && fresh.id === $activeSession.id) {
+              activeSession.set(fresh);
+              if (fresh.active) connectClock(fresh.id);
+            } else {
+              activeSession.set(null);
+            }
+          } catch {
+            activeSession.set(null);
+          }
+        }
       } catch { goto('/login'); }
     }
   });
 
   function tryChangeSubject(s: typeof $currentSubject) {
-    if ($activeSession) return; // bloqueado mientras haya sesión en curso
+    if ($activeSession) return;
     currentSubject.set(s);
   }
 
@@ -68,15 +84,33 @@
 {/if}
 
 <style>
-.layout { display: flex; min-height: 100vh; }
-.sidebar { width: 220px; background: var(--bg2); border-right: 1px solid var(--border); padding: 1.5rem 1rem; display: flex; flex-direction: column; gap: 1.5rem; flex-shrink: 0; }
-.brand { font-size: 1.3rem; font-weight: 700; color: var(--accent); }
-.subject-selector { display: flex; flex-direction: column; gap: 0.3rem; }
+.layout { display: flex; height: 100vh; overflow: hidden; }
+.sidebar {
+  width: 220px;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  padding: 1.25rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  flex-shrink: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+.brand { font-size: 1.3rem; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+.subject-selector { display: flex; flex-direction: column; gap: 0.3rem; flex: 1; min-height: 0; overflow-y: auto; }
 .sub-btn { background: transparent; border: 1px solid transparent; color: var(--text2); border-radius: 8px; padding: 0.4rem 0.7rem; text-align: left; font-size: 0.85rem; }
 .sub-btn.active { background: var(--bg3); border-color: var(--border); color: var(--text); }
 .sub-btn.locked { opacity: 0.35; cursor: not-allowed; }
-.session-badge { margin-top: 0.4rem; font-size: 0.72rem; color: #16a34a; background: #dcfce7; border: 1px solid #bbf7d0; border-radius: 6px; padding: 0.2rem 0.5rem; text-align: center; }
-.nav-links { display: flex; flex-direction: column; gap: 0.3rem; margin-top: auto; }
+.session-badge { margin-top: 0.4rem; font-size: 0.72rem; color: #16a34a; background: #dcfce7; border: 1px solid #bbf7d0; border-radius: 6px; padding: 0.2rem 0.5rem; text-align: center; flex-shrink: 0; }
+.nav-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  flex-shrink: 0;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
 .nav-links a { color: var(--text2); padding: 0.5rem 0.7rem; border-radius: 8px; font-size: 0.9rem; transition: background 0.15s; }
 .nav-links a:hover, .nav-links a.active { background: var(--bg3); color: var(--text); text-decoration: none; }
 .content { flex: 1; padding: 2rem; overflow-y: auto; }

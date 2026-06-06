@@ -13,5 +13,7 @@ export const sessionsApi = {
   deactivate: (sessionId: string) =>
     api.post(`/sessions/${sessionId}/deactivate`, {}),
   reserve: (sessionId: string, slotId: string, studentId: string) =>
-    api.post<Slot>(`/sessions/${sessionId}/slots/${slotId}/reserve`, { student_id: studentId })
+    api.post<Slot>(`/sessions/${sessionId}/slots/${slotId}/reserve`, { student_id: studentId }),
+  getActive: (subjectId: string) =>
+    api.get<Session>(`/sessions/active?subject_id=${subjectId}`)
 };
