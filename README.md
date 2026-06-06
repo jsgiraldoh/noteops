@@ -30,11 +30,11 @@ Durante la clase, el reloj corre en pantalla grande y los estudiantes reservan s
 
 ### ▶️ Demo — un estudiante reserva su turno
 
-https://github.com/jsgiraldoh/noteops/raw/main/video/demo-reserva-turno.mp4
+![Demo: un estudiante reserva su turno en tiempo real](video/demo-reserva-turno.gif)
 
 *El estudiante elige un espacio libre y lo reserva: el turno pasa a* ***Ocupado*** *al instante, en tiempo real, sin recargar la página.*
 
-> Si el video no carga directamente, puedes [verlo o descargarlo aquí](video/demo-reserva-turno.mp4).
+> ¿Prefieres verlo con audio y en alta calidad? [Mira el video completo aquí](video/demo-reserva-turno.mp4).
 
 ---
 
