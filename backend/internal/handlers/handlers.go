@@ -71,6 +71,26 @@ func (h *Handler) Login(c *gin.Context) {
 
 // ─── Students ────────────────────────────────────────────────────────────────
 
+// PATCH /api/students/:id
+func (h *Handler) UpdateStudent(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid student id"})
+		return
+	}
+	var req models.UpdateStudentRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	student, err := h.repo.UpdateStudent(c.Request.Context(), id, req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, student)
+}
+
 // POST /api/students
 func (h *Handler) CreateStudent(c *gin.Context) {
 	var req models.RegisterStudentRequest
@@ -158,6 +178,26 @@ func (h *Handler) CreateSubject(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusCreated, subject)
+}
+
+// PATCH /api/subjects/:id
+func (h *Handler) UpdateSubject(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid subject id"})
+		return
+	}
+	var req models.UpdateSubjectRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	subject, err := h.repo.UpdateSubject(c.Request.Context(), id, req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, subject)
 }
 
 // DELETE /api/subjects/:id

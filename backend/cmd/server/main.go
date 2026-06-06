@@ -75,6 +75,7 @@ func main() {
 	{
 		api.GET("/subjects", h.GetSubjects)
 		api.POST("/subjects", h.CreateSubject)
+		api.PATCH("/subjects/:id", h.UpdateSubject)
 		api.DELETE("/subjects/:id", h.DeleteSubject)
 		api.GET("/subjects/:id/students", h.GetStudentsBySubject)
 		api.GET("/subjects/:id/grades", h.GetSubjectGrades)
@@ -82,6 +83,7 @@ func main() {
 		api.POST("/subjects/:id/enroll", h.EnrollStudent)
 
 		api.POST("/students", h.CreateStudent)
+		api.PATCH("/students/:id", h.UpdateStudent)
 
 		api.POST("/grades", h.RecordGrade)
 		api.PATCH("/grades/:id/comment", h.UpdateComment)

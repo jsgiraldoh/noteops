@@ -33,6 +33,17 @@ func (r *Repository) GetUserByEmail(ctx context.Context, email string) (*models.
 
 // ─── Students ────────────────────────────────────────────────────────────────
 
+func (r *Repository) UpdateStudent(ctx context.Context, id uuid.UUID, req models.UpdateStudentRequest) (*models.Student, error) {
+	s := &models.Student{}
+	err := r.db.QueryRow(ctx,
+		`UPDATE students SET full_name=$1, email=$2, code=$3
+		 WHERE id=$4
+		 RETURNING id, full_name, email, code, created_at`,
+		req.FullName, req.Email, req.Code, id).
+		Scan(&s.ID, &s.FullName, &s.Email, &s.Code, &s.CreatedAt)
+	return s, err
+}
+
 func (r *Repository) CreateStudent(ctx context.Context, req models.RegisterStudentRequest) (*models.Student, error) {
 	s := &models.Student{}
 	err := r.db.QueryRow(ctx,
@@ -144,6 +155,17 @@ func (r *Repository) CreateSubject(ctx context.Context, req models.CreateSubject
 func (r *Repository) DeleteSubject(ctx context.Context, id uuid.UUID) error {
 	_, err := r.db.Exec(ctx, `DELETE FROM subjects WHERE id = $1`, id)
 	return err
+}
+
+func (r *Repository) UpdateSubject(ctx context.Context, id uuid.UUID, req models.UpdateSubjectRequest) (*models.Subject, error) {
+	s := &models.Subject{}
+	err := r.db.QueryRow(ctx,
+		`UPDATE subjects SET name=$1, period=$2, group_name=$3, faculty=$4
+		 WHERE id=$5
+		 RETURNING id, name, period, group_name, faculty, teacher_id, created_at`,
+		req.Name, req.Period, req.GroupName, req.Faculty, id).
+		Scan(&s.ID, &s.Name, &s.Period, &s.GroupName, &s.Faculty, &s.TeacherID, &s.CreatedAt)
+	return s, err
 }
 
 func (r *Repository) GetSubjectsByTeacher(ctx context.Context, teacherID uuid.UUID) ([]models.Subject, error) {

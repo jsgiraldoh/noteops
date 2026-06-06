@@ -114,6 +114,19 @@ type CreateSubjectRequest struct {
 	Faculty   string `json:"faculty"`
 }
 
+type UpdateSubjectRequest struct {
+	Name      string `json:"name"       binding:"required"`
+	Period    string `json:"period"     binding:"required"`
+	GroupName string `json:"group_name"`
+	Faculty   string `json:"faculty"`
+}
+
+type UpdateStudentRequest struct {
+	FullName string `json:"full_name" binding:"required"`
+	Email    string `json:"email"     binding:"required,email"`
+	Code     string `json:"code"`
+}
+
 type RegisterStudentRequest struct {
 	FullName string `json:"full_name" binding:"required"`
 	Email    string `json:"email"     binding:"required,email"`
