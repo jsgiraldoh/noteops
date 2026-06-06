@@ -42,6 +42,9 @@ ps: ## Estado de los contenedores
 shell-db: ## Abrir psql en el contenedor de postgres
 	docker compose exec postgres psql -U noteops -d noteops
 
+rollback: ## Limpiar BD — elimina todos los datos académicos, conserva solo el admin
+	docker compose exec postgres psql -U noteops -d noteops -f /rollback_to_admin.sql
+
 # ── Calidad ──────────────────────────────────────────────────
 test: ## Correr tests backend + check frontend
 	cd backend && go test ./... -race -cover

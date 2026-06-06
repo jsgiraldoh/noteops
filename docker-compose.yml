@@ -113,6 +113,7 @@ services:
     volumes:
       - pg_data:/var/lib/postgresql/data
       - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./infra/postgres/rollback_to_admin.sql:/rollback_to_admin.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-noteops}"]
       interval: 5s
