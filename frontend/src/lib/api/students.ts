@@ -8,5 +8,7 @@ export const studentsApi = {
   bySubject: (subjectId: string) =>
     api.get<Student[]>(`/subjects/${subjectId}/students`),
   enroll: (subjectId: string, studentId: string) =>
-    api.post(`/subjects/${subjectId}/enroll`, { student_id: studentId })
+    api.post(`/subjects/${subjectId}/enroll`, { student_id: studentId }),
+  update: (id: string, data: { full_name: string; email: string; code?: string }) =>
+    api.patch<Student>(`/students/${id}`, data)
 };

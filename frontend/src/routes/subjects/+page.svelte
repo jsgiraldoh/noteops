@@ -13,6 +13,43 @@
   let confirmDeleteId: string | null = null;
   let deleting = false;
 
+  // Edición inline
+  let editingId: string | null = null;
+  let editName = '';
+  let editPeriod = '';
+  let editGroup = '';
+  let editFaculty = '';
+  let saving = false;
+  let saveError = '';
+
+  function startEdit(s: { id: string; name: string; period: string; group_name: string; faculty: string }) {
+    editingId = s.id;
+    editName = s.name;
+    editPeriod = s.period;
+    editGroup = s.group_name || '';
+    editFaculty = s.faculty || '';
+    saveError = '';
+    confirmDeleteId = null;
+  }
+
+  function cancelEdit() { editingId = null; saveError = ''; }
+
+  async function saveEdit() {
+    if (!editingId || !editName.trim() || !editPeriod.trim()) return;
+    saving = true; saveError = '';
+    try {
+      const updated = await subjectsApi.update(editingId, {
+        name: editName.trim(),
+        period: editPeriod.trim(),
+        group_name: editGroup.trim() || undefined,
+        faculty: editFaculty.trim() || undefined
+      });
+      subjects.update(list => list.map(s => s.id === updated.id ? updated : s));
+      editingId = null;
+    } catch (e: any) { saveError = e.message; }
+    finally { saving = false; }
+  }
+
   async function createSubject() {
     if (!name.trim() || !period.trim()) return;
     creating = true;
@@ -94,34 +131,48 @@
       <div class="empty">No hay materias registradas. Crea la primera.</div>
     {/if}
     {#each $subjects as s (s.id)}
-      <div class="card subject-card" class:current={$currentSubject?.id === s.id}>
-        <div class="subject-info">
-          <span class="subject-name">{s.name}</span>
-          <div class="subject-meta">
-            <span class="badge badge-blue">{s.period}</span>
-            {#if s.group_name}<span class="meta-item">Grupo {s.group_name}</span>{/if}
-            {#if s.faculty}<span class="meta-item">{s.faculty}</span>{/if}
-          </div>
-          <span class="subject-id">ID: <code>{s.id}</code></span>
-        </div>
-        <div class="subject-actions">
-          {#if confirmDeleteId === s.id}
-            <div class="confirm-delete">
-              <span>¿Eliminar?</span>
-              <button class="btn-danger-sm" on:click={() => deleteSubject(s.id)} disabled={deleting}>
-                {deleting ? '…' : 'Sí'}
-              </button>
-              <button class="btn-secondary-sm" on:click={() => confirmDeleteId = null}>No</button>
+      <div class="card subject-card" class:current={$currentSubject?.id === s.id} class:editing={editingId === s.id}>
+        {#if editingId === s.id}
+          <div class="edit-form">
+            <div class="edit-row">
+              <div class="field"><label class="label">Nombre *</label><input bind:value={editName} /></div>
+              <div class="field"><label class="label">Periodo *</label><input bind:value={editPeriod} /></div>
             </div>
-          {:else}
-            <button
-              class="btn-delete"
-              title="Eliminar materia"
-              disabled={$activeSession?.subject_id === s.id}
-              on:click={() => confirmDeleteId = s.id}
-            >✕</button>
-          {/if}
-        </div>
+            <div class="edit-row">
+              <div class="field"><label class="label">Grupo</label><input bind:value={editGroup} /></div>
+              <div class="field"><label class="label">Facultad</label><input bind:value={editFaculty} /></div>
+            </div>
+            {#if saveError}<p class="error">{saveError}</p>{/if}
+            <div class="edit-actions">
+              <button class="btn-primary" on:click={saveEdit} disabled={saving || !editName.trim() || !editPeriod.trim()}>
+                {saving ? 'Guardando…' : 'Guardar'}
+              </button>
+              <button class="btn-secondary" on:click={cancelEdit}>Cancelar</button>
+            </div>
+          </div>
+        {:else}
+          <div class="subject-info">
+            <span class="subject-name">{s.name}</span>
+            <div class="subject-meta">
+              <span class="badge badge-blue">{s.period}</span>
+              {#if s.group_name}<span class="meta-item">Grupo {s.group_name}</span>{/if}
+              {#if s.faculty}<span class="meta-item">{s.faculty}</span>{/if}
+            </div>
+            <span class="subject-id">ID: <code>{s.id}</code></span>
+          </div>
+          <div class="subject-actions">
+            {#if confirmDeleteId === s.id}
+              <div class="confirm-delete">
+                <span>¿Eliminar?</span>
+                <button class="btn-danger-sm" on:click={() => deleteSubject(s.id)} disabled={deleting}>{deleting ? '…' : 'Sí'}</button>
+                <button class="btn-secondary-sm" on:click={() => confirmDeleteId = null}>No</button>
+              </div>
+            {:else}
+              <button class="btn-edit" title="Editar" on:click={() => startEdit(s)}>✏</button>
+              <button class="btn-delete" title="Eliminar" disabled={$activeSession?.subject_id === s.id} on:click={() => confirmDeleteId = s.id}>✕</button>
+            {/if}
+          </div>
+        {/if}
       </div>
     {/each}
   </div>
@@ -159,6 +210,22 @@ h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; }
 .subject-id code { font-family: monospace; color: var(--text2); user-select: all; }
 
 .subject-actions { flex-shrink: 0; }
+.subject-card.editing { border-color: var(--accent); }
+.edit-form { width: 100%; display: flex; flex-direction: column; gap: 0.6rem; }
+.edit-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+.edit-actions { display: flex; gap: 0.5rem; }
+.edit-actions button { flex: 1; }
+.btn-edit {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text2);
+  border-radius: 6px;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.btn-edit:hover { border-color: var(--accent); color: var(--accent); }
 .btn-delete {
   background: transparent;
   border: 1px solid var(--border);

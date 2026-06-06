@@ -19,5 +19,7 @@ export interface CreateSubjectData {
 export const subjectsApi = {
   list: () => api.get<Subject[]>('/subjects'),
   create: (data: CreateSubjectData) => api.post<Subject>('/subjects', data),
+  update: (id: string, data: { name: string; period: string; group_name?: string; faculty?: string }) =>
+    api.patch<Subject>(`/subjects/${id}`, data),
   remove: (id: string) => api.delete<{ deleted: boolean }>(`/subjects/${id}`)
 };
