@@ -67,3 +67,6 @@ Invoca el rol adecuado según la tarea:
 | `.claude/skills/docs/SKILL.md` | Ing. de Requisitos | Documentar código y módulos |
 | `.claude/skills/release/SKILL.md` | Release Engineer | Versionar y publicar releases |
 | `.claude/skills/ux/SKILL.md` | Diseñador UX/UI | Auditar y mejorar el frontend — contraste, estados, consistencia visual |
+| `.claude/skills/security/SKILL.md` | Security Engineer | Auditar vulnerabilidades, fallos de seguridad y code smells de seguridad |
+| `.claude/skills/devsecops/SKILL.md` | DevSecOps Engineer | Integrar seguridad en CI/CD — escaneo de dependencias, SAST, secretos, imágenes |
+| `.claude/skills/marketing/SKILL.md` | Marketing & Community | Copys, anuncios, contenido promocional y gestión de la comunidad |
