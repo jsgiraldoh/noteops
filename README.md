@@ -20,6 +20,7 @@
 - [Variables de entorno](#variables-de-entorno)
 - [Base de datos](#base-de-datos)
 - [API Reference](#api-reference)
+- [API para estudiantes — Reserva de turnos](#api-para-estudiantes--reserva-de-turnos)
 - [WebSocket — Reloj en tiempo real](#websocket--reloj-en-tiempo-real)
 - [CI/CD y releases](#cicd-y-releases)
 - [Equipo de desarrollo (Claude Code)](#equipo-de-desarrollo-claude-code)
@@ -310,20 +311,20 @@ ON CONFLICT (email) DO NOTHING;
 
 ## API Reference
 
-Todos los endpoints salvo `/api/health` y `/api/auth/login` requieren `Authorization: Bearer <token>`.
+Los endpoints marcados con 🔓 son **públicos** — no requieren token. El resto requieren `Authorization: Bearer <token>`.
 
 ### Autenticación
 
 ```bash
-# Login — devuelve JWT válido por 24 horas
+# 🔓 Health check (público)
+curl http://noteops.local/api/health
+# → { "status": "ok" }
+
+# 🔓 Login — devuelve JWT válido por 24 horas
 curl -X POST http://noteops.local/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@noteops.local","password":"admin123"}'
 # → { "token": "eyJ...", "user": { "id": "uuid", "role": "admin" } }
-
-# Health check (sin autenticación)
-curl http://noteops.local/api/health
-# → { "status": "ok" }
 ```
 
 ### Materias
@@ -391,13 +392,90 @@ POST /api/sessions
 # Activar sesión (inicia el reloj WebSocket)
 POST /api/sessions/:id/activate
 
-# Ver espacios disponibles y reservados
+# 🔓 Ver espacios disponibles y reservados (público — sin token)
 GET /api/sessions/:id/slots
 
-# Reservar un espacio para un estudiante
+# 🔓 Reservar un espacio para un estudiante (público — sin token)
 POST /api/sessions/:id/slots/:slotId/reserve
 { "student_id": "uuid" }
 ```
+
+---
+
+## API para estudiantes — Reserva de turnos
+
+Esta sección es para **estudiantes** que quieran practicar peticiones HTTP con `curl`. No se requiere cuenta ni token — el docente activa la sesión y les comparte el `SESSION_ID` y su `STUDENT_ID`.
+
+### Qué son los slots
+
+Cuando el docente crea una sesión de clase, el sistema genera automáticamente una lista de **espacios de tiempo** (slots) para que los estudiantes reserven su turno de exposición. Cada slot tiene un número, hora de inicio y duración. Un slot con `student_id: null` está libre; con un UUID está ocupado.
+
+### Paso 1 — Ver los slots disponibles
+
+```bash
+curl http://noteops.local/api/sessions/{SESSION_ID}/slots
+```
+
+Respuesta de ejemplo:
+
+```json
+[
+  {
+    "id": "b3ca8405-5e13-452a-b224-f6a7dd2c2b60",
+    "session_id": "656a54a4-ab4b-40fc-b398-08ee562f928c",
+    "number": 1,
+    "starts_at": "2026-06-06T00:29:24Z",
+    "duration_min": 5,
+    "student_id": "584176d9-46d1-467f-a35e-ca04f04eb781",
+    "reserved_at": "2026-06-06T00:31:19Z"
+  },
+  {
+    "id": "94537d73-7f56-4008-b993-cd43e6da5d7e",
+    "session_id": "656a54a4-ab4b-40fc-b398-08ee562f928c",
+    "number": 2,
+    "starts_at": "2026-06-06T00:34:24Z",
+    "duration_min": 5,
+    "student_id": null,
+    "reserved_at": null
+  }
+]
+```
+
+Los slots con `"student_id": null` están **libres**. Copia el `id` del que quieras reservar.
+
+### Paso 2 — Reservar tu turno
+
+```bash
+curl -X POST \
+  http://noteops.local/api/sessions/{SESSION_ID}/slots/{SLOT_ID}/reserve \
+  -H "Content-Type: application/json" \
+  -d '{"student_id": "{TU_STUDENT_ID}"}'
+```
+
+Respuesta exitosa (HTTP 200):
+
+```json
+{
+  "id": "94537d73-7f56-4008-b993-cd43e6da5d7e",
+  "session_id": "656a54a4-ab4b-40fc-b398-08ee562f928c",
+  "number": 2,
+  "starts_at": "2026-06-06T00:34:24Z",
+  "duration_min": 5,
+  "student_id": "{TU_STUDENT_ID}",
+  "reserved_at": "2026-06-06T00:42:39Z"
+}
+```
+
+Si el slot ya fue reservado por otro estudiante recibirás **HTTP 409 Conflict**. Vuelve al Paso 1, elige otro slot libre e intenta de nuevo.
+
+### Datos que te entrega el docente
+
+| Dato | Descripción |
+|---|---|
+| `SESSION_ID` | UUID de la sesión activa del día |
+| `STUDENT_ID` | Tu UUID en el sistema (el docente lo asigna al inscribirte) |
+
+> El `SESSION_ID` cambia en cada clase. El `STUDENT_ID` es fijo durante todo el semestre.
 
 ---
 
