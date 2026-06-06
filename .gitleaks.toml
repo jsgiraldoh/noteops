@@ -1,0 +1,19 @@
+title = "NoteOPs — configuración de gitleaks"
+
+# Extiende las reglas por defecto de gitleaks y añade excepciones
+# para falsos positivos conocidos (ejemplos de documentación y
+# placeholders de configuración, que NO son secretos reales).
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Ejemplos de tokens JWT en la documentación (no son secretos reales)"
+paths = [
+  '''README\.md''',
+]
+
+[[allowlists]]
+description = "Plantillas de variables de entorno con valores placeholder"
+paths = [
+  '''(.*\/)?\.env\.example''',
+]
