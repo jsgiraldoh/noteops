@@ -54,6 +54,7 @@ NoteOPs digitaliza el proceso de registro y seguimiento de notas académicas uni
 | **Archivos** | MinIO | latest | Exportes de planillas, compatible con S3, self-hosted |
 | **Proxy** | Traefik | v3 | SSL automático con Let's Encrypt, routing por hostname y path, zero-config con Docker labels |
 | **Contenedores** | Docker + Compose | latest | Un comando levanta todo el stack — local y producción idénticos |
+| **DB Admin** | Adminer | 4 | Interfaz web minimalista (~10 MB) para consultar PostgreSQL vía navegador — cero configuración, siempre disponible en `:8081` |
 
 ---
 
@@ -599,6 +600,8 @@ make up               # Levantar stack completo con build local
 make dev              # Solo infra (DB, Redis, MinIO) — útil para desarrollo sin Docker
 make logs             # Logs en tiempo real de todos los servicios
 make shell-db         # Abrir psql en el contenedor de postgres
+# Adminer — administrador web de base de datos
+# Abrir http://localhost:8081 · Sistema: PostgreSQL · Servidor: postgres · Usuario: noteops · Contraseña: secret
 
 # Testing
 make test             # go test ./... -race -cover + npm run check
