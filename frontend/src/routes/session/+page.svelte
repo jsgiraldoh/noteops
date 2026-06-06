@@ -31,11 +31,17 @@
     if ($activeSession) {
       try {
         slots = await sessionsApi.slots($activeSession.id);
+        // Toda sesión real genera al menos un slot; si no hay, es una
+        // sesión fantasma persistida en localStorage que ya no existe en la BD.
+        if (slots.length === 0) {
+          newSession();
+          return;
+        }
         if ($activeSession.active) {
           connectClock($activeSession.id);
           startPolling();
         }
-      } catch { activeSession.set(null); }
+      } catch { newSession(); }
     }
   });
 
@@ -135,8 +141,29 @@
       slots = slots.map(s => s.id === updated.id ? updated : s);
       showToast(`Turno #${updated.number} reservado`);
       cancelReserve();
+    } catch (e: any) {
+      // Mostrar el mensaje real del backend (estudiante inexistente, espacio tomado, etc.)
+      reserveError = e.message ?? 'No se pudo reservar el espacio.';
+      // Resincronizar: si la sesión es fantasma (sin slots en la BD), limpiarla
+      await resyncSlots();
+    }
+  }
+
+  // Recarga los slots desde la BD. Si la sesión ya no existe (sin slots),
+  // limpia el estado local — caso de sesión fantasma tras un reinicio o rollback.
+  async function resyncSlots() {
+    if (!$activeSession) return;
+    try {
+      const fresh = await sessionsApi.slots($activeSession.id);
+      if (fresh.length === 0) {
+        newSession();
+        error = 'La sesión anterior ya no existe. Crea una nueva.';
+      } else {
+        slots = fresh;
+      }
     } catch {
-      reserveError = 'Espacio ya reservado o student_id inválido.';
+      newSession();
+      error = 'La sesión anterior ya no existe. Crea una nueva.';
     }
   }
 </script>

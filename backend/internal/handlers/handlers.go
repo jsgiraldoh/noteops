@@ -1,12 +1,15 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/johansgiraldo/noteops/backend/internal/middleware"
 	"github.com/johansgiraldo/noteops/backend/internal/models"
 	"github.com/johansgiraldo/noteops/backend/internal/repository"
@@ -365,7 +368,18 @@ func (h *Handler) ReserveSlot(c *gin.Context) {
 	studentID, _ := uuid.Parse(req.StudentID)
 	slot, err := h.repo.ReserveSlot(c.Request.Context(), slotID, studentID)
 	if err != nil {
-		c.JSON(http.StatusConflict, gin.H{"error": "Este espacio ya fue reservado"})
+		// Ninguna fila actualizada: el espacio ya está tomado o la sesión ya no existe
+		if errors.Is(err, pgx.ErrNoRows) {
+			c.JSON(http.StatusConflict, gin.H{"error": "Este espacio ya fue reservado o la sesión ya no existe"})
+			return
+		}
+		// Violación de llave foránea: el estudiante no existe en el sistema
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23503" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "El estudiante seleccionado no existe o no está registrado"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": safeError(err)})
 		return
 	}
 	c.JSON(http.StatusOK, slot)
