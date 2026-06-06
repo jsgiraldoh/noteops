@@ -320,7 +320,7 @@ func (r *Repository) ActivateSession(ctx context.Context, id uuid.UUID) error {
 
 func (r *Repository) DeactivateSession(ctx context.Context, id uuid.UUID) error {
 	_, err := r.db.Exec(ctx,
-		`UPDATE sessions SET active = false WHERE id = $1`, id)
+		`DELETE FROM sessions WHERE id = $1`, id)
 	return err
 }
 
