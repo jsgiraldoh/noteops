@@ -65,6 +65,10 @@ func main() {
 	// ── WebSocket ─────────────────────────────────────────────────────────────
 	r.GET("/ws/session/:id", hub.ServeWS)
 
+	// ── Rutas públicas adicionales ────────────────────────────────────────────
+	r.GET("/api/sessions/:id/slots", h.GetSlots)
+	r.POST("/api/sessions/:id/slots/:slotID/reserve", h.ReserveSlot)
+
 	// ── Rutas protegidas ──────────────────────────────────────────────────────
 	api := r.Group("/api", middleware.Auth(cfg.JWTSecret))
 	{
@@ -82,8 +86,6 @@ func main() {
 		api.POST("/sessions", h.CreateSession)
 		api.POST("/sessions/:id/activate", h.ActivateSession)
 		api.POST("/sessions/:id/deactivate", h.DeactivateSession)
-		api.GET("/sessions/:id/slots", h.GetSlots)
-		api.POST("/sessions/:id/slots/:slotID/reserve", h.ReserveSlot)
 	}
 
 	// ── Servidor con graceful shutdown ────────────────────────────────────────
