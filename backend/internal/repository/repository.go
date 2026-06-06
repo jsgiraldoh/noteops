@@ -71,7 +71,7 @@ func (r *Repository) GetStudentsBySubject(ctx context.Context, subjectID uuid.UU
 	}
 	defer rows.Close()
 
-	var students []models.Student
+	students := make([]models.Student, 0)
 	for rows.Next() {
 		var s models.Student
 		if err := rows.Scan(&s.ID, &s.FullName, &s.Email, &s.Code, &s.CreatedAt); err != nil {
@@ -127,7 +127,7 @@ func (r *Repository) GetGradesBySubject(ctx context.Context, subjectID uuid.UUID
 	}
 	defer rows.Close()
 
-	var grades []models.Grade
+	grades := make([]models.Grade, 0)
 	for rows.Next() {
 		var g models.Grade
 		if err := rows.Scan(&g.ID, &g.EnrollmentID, &g.ActivityID, &g.Value,
@@ -177,7 +177,7 @@ func (r *Repository) GetSubjectsByTeacher(ctx context.Context, teacherID uuid.UU
 	}
 	defer rows.Close()
 
-	var subjects []models.Subject
+	subjects := make([]models.Subject, 0)
 	for rows.Next() {
 		var s models.Subject
 		if err := rows.Scan(&s.ID, &s.Name, &s.Period, &s.GroupName,
@@ -212,7 +212,7 @@ func (r *Repository) GetCutsBySubject(ctx context.Context, subjectID uuid.UUID) 
 	}
 	defer rows.Close()
 
-	var cuts []models.Cut
+	cuts := make([]models.Cut, 0)
 	for rows.Next() {
 		var c models.Cut
 		if err := rows.Scan(&c.ID, &c.SubjectID, &c.Number, &c.Name, &c.Weight); err != nil {
@@ -232,7 +232,7 @@ func (r *Repository) GetActivitiesByCut(ctx context.Context, cutID uuid.UUID) ([
 	}
 	defer rows.Close()
 
-	var acts []models.Activity
+	acts := make([]models.Activity, 0)
 	for rows.Next() {
 		var a models.Activity
 		if err := rows.Scan(&a.ID, &a.CutID, &a.Name, &a.Weight, &a.ScheduledAt); err != nil {
@@ -283,7 +283,7 @@ func (r *Repository) GetGradesByEnrollment(ctx context.Context, enrollmentID uui
 	}
 	defer rows.Close()
 
-	var grades []models.Grade
+	grades := make([]models.Grade, 0)
 	for rows.Next() {
 		var g models.Grade
 		if err := rows.Scan(&g.ID, &g.EnrollmentID, &g.ActivityID, &g.Value,
@@ -305,7 +305,7 @@ func (r *Repository) GetFinalGradesBySubject(ctx context.Context, subjectID uuid
 	}
 	defer rows.Close()
 
-	var results []models.FinalGrade
+	results := make([]models.FinalGrade, 0)
 	for rows.Next() {
 		var fg models.FinalGrade
 		if err := rows.Scan(&fg.EnrollmentID, &fg.StudentID,
@@ -385,7 +385,7 @@ func (r *Repository) GetSlotsBySession(ctx context.Context, sessionID uuid.UUID)
 	}
 	defer rows.Close()
 
-	var slots []models.Slot
+	slots := make([]models.Slot, 0)
 	for rows.Next() {
 		var s models.Slot
 		if err := rows.Scan(&s.ID, &s.SessionID, &s.Number, &s.StartsAt,
