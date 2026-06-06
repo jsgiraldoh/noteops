@@ -74,6 +74,7 @@
         <a href="/session" class:active={$page.url.pathname.startsWith('/session')}>⏱ Sesión</a>
         <a href="/students" class:active={$page.url.pathname === '/students'}>👥 Estudiantes</a>
         <a href="/subjects" class:active={$page.url.pathname === '/subjects'}>📚 Materias</a>
+        <a href="/import" class:active={$page.url.pathname === '/import'}>📥 Importar</a>
       </div>
     </nav>
     <main class="content">
