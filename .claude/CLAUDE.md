@@ -66,3 +66,4 @@ Invoca el rol adecuado según la tarea:
 | `.claude/skills/architect/SKILL.md` | Arquitecto | Actualizar README y documentación técnica |
 | `.claude/skills/docs/SKILL.md` | Ing. de Requisitos | Documentar código y módulos |
 | `.claude/skills/release/SKILL.md` | Release Engineer | Versionar y publicar releases |
+| `.claude/skills/ux/SKILL.md` | Diseñador UX/UI | Auditar y mejorar el frontend — contraste, estados, consistencia visual |
