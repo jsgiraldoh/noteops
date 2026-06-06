@@ -3,7 +3,9 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
-  import { restoreToken } from '$lib/api/auth';
+  import { restoreToken, logout } from '$lib/api/auth';
+  import { user } from '$lib/stores/auth';
+  import { disconnectClock } from '$lib/stores/clock';
   import { subjectsApi } from '$lib/api/subjects';
   import { subjects, currentSubject } from '$lib/stores/subject';
   import { activeSession } from '$lib/stores/session';
@@ -19,9 +21,16 @@
     }
     if (token) {
       try {
-        const list = await subjectsApi.list();
+        const [list] = await Promise.all([subjectsApi.list()]);
         subjects.set(list);
         if (list.length && !$currentSubject) currentSubject.set(list[0]);
+        // Restaurar nombre del usuario desde el token almacenado
+        if (!$user) {
+          try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            user.set({ id: payload.user_id, email: payload.email, role: payload.role, full_name: payload.email.split('@')[0] });
+          } catch {}
+        }
 
         // Verificar si la sesión persistida en localStorage sigue activa
         if ($activeSession) {
@@ -43,6 +52,16 @@
   function tryChangeSubject(s: typeof $currentSubject) {
     if ($activeSession) return;
     currentSubject.set(s);
+  }
+
+  function handleLogout() {
+    disconnectClock();
+    activeSession.set(null);
+    subjects.set([]);
+    currentSubject.set(null);
+    user.set(null);
+    logout();
+    goto('/login');
   }
 
   $: locked = $activeSession !== null;
@@ -75,6 +94,10 @@
         <a href="/students" class:active={$page.url.pathname === '/students'}>👥 Estudiantes</a>
         <a href="/subjects" class:active={$page.url.pathname === '/subjects'}>📚 Materias</a>
         <a href="/import" class:active={$page.url.pathname === '/import'}>📥 Importar</a>
+      </div>
+      <div class="logout-section">
+        {#if $user}<span class="username">{$user.full_name}</span>{/if}
+        <button class="btn-logout" on:click={handleLogout}>↩ Cerrar sesión</button>
       </div>
     </nav>
     <main class="content">
@@ -113,5 +136,9 @@
 }
 .nav-links a { color: var(--text2); padding: 0.5rem 0.7rem; border-radius: 8px; font-size: 0.9rem; transition: background 0.15s; }
 .nav-links a:hover, .nav-links a.active { background: var(--bg3); color: var(--text); text-decoration: none; }
+.logout-section { flex-shrink: 0; padding-top: 0.75rem; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 0.35rem; }
+.username { font-size: 0.75rem; color: var(--text2); padding: 0 0.25rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.btn-logout { background: transparent; border: 1px solid var(--border); color: var(--text2); border-radius: 8px; padding: 0.45rem 0.7rem; font-size: 0.85rem; text-align: left; cursor: pointer; transition: border-color 0.15s, color 0.15s; }
+.btn-logout:hover { border-color: var(--danger); color: var(--danger); }
 .content { flex: 1; padding: 2rem; overflow-y: auto; }
 </style>
