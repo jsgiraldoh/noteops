@@ -3,7 +3,7 @@
 REPO := jsgiraldoh/noteops
 TAG  ?= latest
 
-.PHONY: help up up-registry dev down fresh fresh-seed logs test migrate seed build push release deploy shell-db ps
+.PHONY: help up up-registry dev down fresh fresh-seed logs test test-integration migrate seed build push release deploy shell-db rollback ps
 
 help: ## Mostrar esta ayuda
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -46,9 +46,12 @@ rollback: ## Limpiar BD — elimina todos los datos académicos, conserva solo e
 	docker compose exec postgres psql -U noteops -d noteops -f /rollback_to_admin.sql
 
 # ── Calidad ──────────────────────────────────────────────────
-test: ## Correr tests backend + check frontend
+test: ## Correr tests unitarios backend + check frontend
 	cd backend && go test ./... -race -cover
 	cd frontend && npm run check
+
+test-integration: ## Tests de integración del backend con testcontainers (requiere Docker)
+	cd backend && go test -tags=integration ./... -count=1
 
 migrate: ## Aplicar migraciones pendientes
 	docker compose exec noteops_backend ./migrate up
