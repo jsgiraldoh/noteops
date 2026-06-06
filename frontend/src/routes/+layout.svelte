@@ -6,6 +6,7 @@
   import { restoreToken, logout } from '$lib/api/auth';
   import { user } from '$lib/stores/auth';
   import { disconnectClock } from '$lib/stores/clock';
+  import { notify } from '$lib/stores/notify';
   import { subjectsApi } from '$lib/api/subjects';
   import { subjects, currentSubject } from '$lib/stores/subject';
   import { activeSession } from '$lib/stores/session';
@@ -66,6 +67,17 @@
 
   $: locked = $activeSession !== null;
 </script>
+
+<!-- Notificaciones globales -->
+<div class="notify-stack">
+  {#each $notify as n (n.id)}
+    <div class="notif notif-{n.type}" role="alert">
+      <span class="notif-icon">{n.type === 'success' ? '✓' : n.type === 'error' ? '✕' : 'ℹ'}</span>
+      <span class="notif-msg">{n.message}</span>
+      <button class="notif-close" on:click={() => notify.dismiss(n.id)}>×</button>
+    </div>
+  {/each}
+</div>
 
 {#if $page.url.pathname === '/login'}
   <slot />
@@ -141,4 +153,35 @@
 .btn-logout { background: transparent; border: 1px solid var(--border); color: var(--text2); border-radius: 8px; padding: 0.45rem 0.7rem; font-size: 0.85rem; text-align: left; cursor: pointer; transition: border-color 0.15s, color 0.15s; }
 .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
 .content { flex: 1; padding: 2rem; overflow-y: auto; }
+
+/* ── Notificaciones globales ────────────────────────────────── */
+.notify-stack {
+  position: fixed; bottom: 1.5rem; right: 1.5rem;
+  display: flex; flex-direction: column; gap: 0.5rem;
+  z-index: 9999; pointer-events: none;
+}
+.notif {
+  display: flex; align-items: center; gap: 0.6rem;
+  padding: 0.65rem 1rem; border-radius: 8px;
+  font-size: 0.85rem; font-weight: 500;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  pointer-events: all;
+  animation: slideIn 0.2s ease;
+  max-width: 360px;
+}
+.notif-success { background: #14401e; color: #4ade80; border: 1px solid #166534; }
+.notif-error   { background: #450a0a; color: #fca5a5; border: 1px solid #7f1d1d; }
+.notif-info    { background: #1e2a6e; color: #93aaff; border: 1px solid #1d4ed8; }
+.notif-icon    { font-size: 0.9rem; flex-shrink: 0; }
+.notif-msg     { flex: 1; line-height: 1.4; }
+.notif-close   {
+  background: transparent; border: none; color: inherit;
+  opacity: 0.6; font-size: 1.1rem; cursor: pointer; flex-shrink: 0;
+  padding: 0; line-height: 1;
+}
+.notif-close:hover { opacity: 1; }
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 </style>

@@ -31,18 +31,18 @@ func New(repo *repository.Repository, svc *service.Service, hub *Hub, jwtSecret 
 func (h *Handler) Login(c *gin.Context) {
 	var req models.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": sanitizeBindError(err)})
 		return
 	}
 
 	user, err := h.repo.GetUserByEmail(c.Request.Context(), req.Email)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Credenciales incorrectas"})
 		return
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Credenciales incorrectas"})
 		return
 	}
 
@@ -59,14 +59,11 @@ func (h *Handler) Login(c *gin.Context) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signed, err := token.SignedString([]byte(h.jwtSecret))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not generate token"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "No se pudo generar el token de acceso"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"token": signed,
-		"user":  user,
-	})
+	c.JSON(http.StatusOK, gin.H{"token": signed, "user": user})
 }
 
 // ─── Students ────────────────────────────────────────────────────────────────
@@ -75,17 +72,17 @@ func (h *Handler) Login(c *gin.Context) {
 func (h *Handler) UpdateStudent(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid student id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID de estudiante inválido"})
 		return
 	}
 	var req models.UpdateStudentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": sanitizeBindError(err)})
 		return
 	}
 	student, err := h.repo.UpdateStudent(c.Request.Context(), id, req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": safeError(err)})
 		return
 	}
 	c.JSON(http.StatusOK, student)
@@ -95,16 +92,14 @@ func (h *Handler) UpdateStudent(c *gin.Context) {
 func (h *Handler) CreateStudent(c *gin.Context) {
 	var req models.RegisterStudentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": sanitizeBindError(err)})
 		return
 	}
-
 	student, err := h.repo.CreateStudent(c.Request.Context(), req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": safeError(err)})
 		return
 	}
-
 	c.JSON(http.StatusCreated, student)
 }
 
@@ -112,25 +107,22 @@ func (h *Handler) CreateStudent(c *gin.Context) {
 func (h *Handler) EnrollStudent(c *gin.Context) {
 	subjectID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid subject id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID de materia inválido"})
 		return
 	}
-
 	var body struct {
 		StudentID string `json:"student_id" binding:"required,uuid"`
 	}
 	if err := c.ShouldBindJSON(&body); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": sanitizeBindError(err)})
 		return
 	}
-
 	studentID, _ := uuid.Parse(body.StudentID)
 	enrollment, err := h.repo.EnrollStudent(c.Request.Context(), studentID, subjectID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": safeError(err)})
 		return
 	}
-
 	c.JSON(http.StatusCreated, enrollment)
 }
 
@@ -138,16 +130,14 @@ func (h *Handler) EnrollStudent(c *gin.Context) {
 func (h *Handler) GetStudentsBySubject(c *gin.Context) {
 	subjectID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid subject id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID de materia inválido"})
 		return
 	}
-
 	students, err := h.repo.GetStudentsBySubject(c.Request.Context(), subjectID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": safeError(err)})
 		return
 	}
-
 	c.JSON(http.StatusOK, students)
 }
 
@@ -158,7 +148,7 @@ func (h *Handler) GetSubjects(c *gin.Context) {
 	teacherID, _ := uuid.Parse(c.GetString("user_id"))
 	subjects, err := h.repo.GetSubjectsByTeacher(c.Request.Context(), teacherID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": safeError(err)})
 		return
 	}
 	c.JSON(http.StatusOK, subjects)
@@ -168,13 +158,13 @@ func (h *Handler) GetSubjects(c *gin.Context) {
 func (h *Handler) CreateSubject(c *gin.Context) {
 	var req models.CreateSubjectRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": sanitizeBindError(err)})
 		return
 	}
 	teacherID, _ := uuid.Parse(c.GetString("user_id"))
 	subject, err := h.repo.CreateSubject(c.Request.Context(), req, teacherID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": safeError(err)})
 		return
 	}
 	c.JSON(http.StatusCreated, subject)
@@ -184,17 +174,17 @@ func (h *Handler) CreateSubject(c *gin.Context) {
 func (h *Handler) UpdateSubject(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid subject id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID de materia inválido"})
 		return
 	}
 	var req models.UpdateSubjectRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": sanitizeBindError(err)})
 		return
 	}
 	subject, err := h.repo.UpdateSubject(c.Request.Context(), id, req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": safeError(err)})
 		return
 	}
 	c.JSON(http.StatusOK, subject)
@@ -204,14 +194,14 @@ func (h *Handler) UpdateSubject(c *gin.Context) {
 func (h *Handler) DeleteSubject(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid subject id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID de materia inválido"})
 		return
 	}
 	if err := h.repo.DeleteSubject(c.Request.Context(), id); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": safeError(err)})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"deleted": true})
+	c.JSON(http.StatusOK, gin.H{"deleted": true, "message": "Materia eliminada"})
 }
 
 // ─── Grades ──────────────────────────────────────────────────────────────────
@@ -220,16 +210,14 @@ func (h *Handler) DeleteSubject(c *gin.Context) {
 func (h *Handler) RecordGrade(c *gin.Context) {
 	var req models.RecordGradeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": sanitizeBindError(err)})
 		return
 	}
-
 	grade, err := h.repo.UpsertGrade(c.Request.Context(), req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": safeError(err)})
 		return
 	}
-
 	c.JSON(http.StatusOK, grade)
 }
 
@@ -237,38 +225,33 @@ func (h *Handler) RecordGrade(c *gin.Context) {
 func (h *Handler) UpdateComment(c *gin.Context) {
 	gradeID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid grade id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID de nota inválido"})
 		return
 	}
-
 	var req models.UpdateCommentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": sanitizeBindError(err)})
 		return
 	}
-
 	if err := h.repo.UpdateComment(c.Request.Context(), gradeID, req.Comment); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": safeError(err)})
 		return
 	}
-
-	c.JSON(http.StatusOK, gin.H{"updated": true})
+	c.JSON(http.StatusOK, gin.H{"updated": true, "message": "Comentario actualizado"})
 }
 
 // GET /api/subjects/:id/grades
 func (h *Handler) GetSubjectGrades(c *gin.Context) {
 	subjectID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid subject id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID de materia inválido"})
 		return
 	}
-
 	result, err := h.svc.GetSubjectGrades(c.Request.Context(), subjectID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": safeError(err)})
 		return
 	}
-
 	c.JSON(http.StatusOK, result)
 }
 
@@ -276,16 +259,14 @@ func (h *Handler) GetSubjectGrades(c *gin.Context) {
 func (h *Handler) GetFinalGrades(c *gin.Context) {
 	subjectID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid subject id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID de materia inválido"})
 		return
 	}
-
 	grades, err := h.repo.GetFinalGradesBySubject(c.Request.Context(), subjectID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": safeError(err)})
 		return
 	}
-
 	c.JSON(http.StatusOK, grades)
 }
 
@@ -295,58 +276,48 @@ func (h *Handler) GetFinalGrades(c *gin.Context) {
 func (h *Handler) CreateSession(c *gin.Context) {
 	var req models.CreateSessionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": sanitizeBindError(err)})
 		return
 	}
-
 	session, err := h.repo.CreateSession(c.Request.Context(), req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": safeError(err)})
 		return
 	}
-
 	slots, err := h.svc.GenerateSlots(c.Request.Context(), session)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "session created but slots failed: " + err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Sesión creada pero no se pudieron generar los espacios"})
 		return
 	}
-
-	c.JSON(http.StatusCreated, gin.H{
-		"session": session,
-		"slots":   slots,
-	})
+	c.JSON(http.StatusCreated, gin.H{"session": session, "slots": slots})
 }
 
 // POST /api/sessions/:id/activate
 func (h *Handler) ActivateSession(c *gin.Context) {
 	sessionID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid session id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID de sesión inválido"})
 		return
 	}
-
 	if err := h.repo.ActivateSession(c.Request.Context(), sessionID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": safeError(err)})
 		return
 	}
-
-	c.JSON(http.StatusOK, gin.H{"activated": true})
+	c.JSON(http.StatusOK, gin.H{"activated": true, "message": "Sesión iniciada"})
 }
 
 // POST /api/sessions/:id/deactivate
 func (h *Handler) DeactivateSession(c *gin.Context) {
 	sessionID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid session id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID de sesión inválido"})
 		return
 	}
-
 	if err := h.repo.DeactivateSession(c.Request.Context(), sessionID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": safeError(err)})
 		return
 	}
-
-	c.JSON(http.StatusOK, gin.H{"deactivated": true})
+	c.JSON(http.StatusOK, gin.H{"deactivated": true, "message": "Sesión finalizada"})
 }
 
 // GET /api/sessions/active?subject_id=uuid
@@ -356,13 +327,11 @@ func (h *Handler) GetActiveSession(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "subject_id requerido y debe ser un UUID válido"})
 		return
 	}
-
 	session, err := h.repo.GetActiveSessionBySubject(c.Request.Context(), subjectID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "no hay sesión activa para esta materia"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "No hay sesión activa para esta materia"})
 		return
 	}
-
 	c.JSON(http.StatusOK, session)
 }
 
@@ -370,16 +339,14 @@ func (h *Handler) GetActiveSession(c *gin.Context) {
 func (h *Handler) GetSlots(c *gin.Context) {
 	sessionID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid session id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID de sesión inválido"})
 		return
 	}
-
 	slots, err := h.repo.GetSlotsBySession(c.Request.Context(), sessionID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": safeError(err)})
 		return
 	}
-
 	c.JSON(http.StatusOK, slots)
 }
 
@@ -387,23 +354,20 @@ func (h *Handler) GetSlots(c *gin.Context) {
 func (h *Handler) ReserveSlot(c *gin.Context) {
 	slotID, err := uuid.Parse(c.Param("slotID"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid slot id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID de espacio inválido"})
 		return
 	}
-
 	var req models.ReserveSlotRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": sanitizeBindError(err)})
 		return
 	}
-
 	studentID, _ := uuid.Parse(req.StudentID)
 	slot, err := h.repo.ReserveSlot(c.Request.Context(), slotID, studentID)
 	if err != nil {
-		c.JSON(http.StatusConflict, gin.H{"error": "slot already reserved"})
+		c.JSON(http.StatusConflict, gin.H{"error": "Este espacio ya fue reservado"})
 		return
 	}
-
 	c.JSON(http.StatusOK, slot)
 }
 
@@ -411,17 +375,17 @@ func (h *Handler) ReserveSlot(c *gin.Context) {
 func (h *Handler) ImportSubjectData(c *gin.Context) {
 	subjectID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid subject id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID de materia inválido"})
 		return
 	}
 	var req models.ImportRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": sanitizeBindError(err)})
 		return
 	}
 	result, err := h.repo.ImportSubjectData(c.Request.Context(), subjectID, req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": safeError(err)})
 		return
 	}
 	c.JSON(http.StatusOK, result)

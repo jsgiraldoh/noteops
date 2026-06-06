@@ -2,6 +2,7 @@
   import { subjects, currentSubject } from '$lib/stores/subject';
   import { subjectsApi } from '$lib/api/subjects';
   import { activeSession } from '$lib/stores/session';
+  import { notify } from '$lib/stores/notify';
 
   let name = '';
   let period = '';
@@ -45,8 +46,9 @@
         faculty: editFaculty.trim() || undefined
       });
       subjects.update(list => list.map(s => s.id === updated.id ? updated : s));
+      notify.success('Materia actualizada');
       editingId = null;
-    } catch (e: any) { saveError = e.message; }
+    } catch (e: any) { saveError = e.message; notify.error(e.message); }
     finally { saving = false; }
   }
 
@@ -63,8 +65,10 @@
       });
       subjects.update(list => [created, ...list]);
       name = ''; period = ''; groupName = ''; faculty = '';
+      notify.success('Materia creada exitosamente');
     } catch (e: any) {
       createError = e.message;
+      notify.error(e.message);
     } finally {
       creating = false;
     }
@@ -76,8 +80,10 @@
       await subjectsApi.remove(id);
       subjects.update(list => list.filter(s => s.id !== id));
       if ($currentSubject?.id === id) currentSubject.set(null);
+      notify.success('Materia eliminada');
       confirmDeleteId = null;
     } catch (e: any) {
+      notify.error(e.message);
       confirmDeleteId = null;
     } finally {
       deleting = false;

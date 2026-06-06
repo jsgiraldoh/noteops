@@ -2,6 +2,7 @@
   import { currentSubject } from '$lib/stores/subject';
   import { studentsApi, type Student } from '$lib/api/students';
   import StudentForm from '$lib/components/StudentForm.svelte';
+  import { notify } from '$lib/stores/notify';
 
   let students: Student[] = [];
   let loading = true;
@@ -43,8 +44,9 @@
         code: editCode.trim() || undefined
       });
       students = students.map(s => s.id === updated.id ? updated : s);
+      notify.success('Estudiante actualizado');
       editingId = null;
-    } catch (e: any) { saveError = e.message; }
+    } catch (e: any) { saveError = e.message; notify.error(e.message); }
     finally { saving = false; }
   }
 </script>
