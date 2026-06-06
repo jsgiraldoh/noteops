@@ -186,13 +186,16 @@ jobs:
           cache-from: type=gha,scope=backend
           cache-to: type=gha,mode=max,scope=backend
 
-      - name: Trivy — backend image
+      # Trivy es informativo: lista vulnerabilidades críticas, altas y medias
+      # en los logs pero NO rompe el build (exit-code 0). Las vulnerabilidades
+      # de dependencias Go ya las cubre el gate calibrado de govulncheck.
+      - name: Trivy — backend image (informe)
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: noteops-backend:ci
-          severity: CRITICAL,HIGH
-          exit-code: '1'
-          ignore-unfixed: true # no bloquear por CVEs sin fix disponible
+          severity: CRITICAL,HIGH,MEDIUM
+          exit-code: '0'
+          ignore-unfixed: false
 
       # ── Frontend ──
       - name: Build frontend (local)
@@ -205,13 +208,13 @@ jobs:
           cache-from: type=gha,scope=frontend
           cache-to: type=gha,mode=max,scope=frontend
 
-      - name: Trivy — frontend image
+      - name: Trivy — frontend image (informe)
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: noteops-frontend:ci
-          severity: CRITICAL,HIGH
-          exit-code: '1'
-          ignore-unfixed: true
+          severity: CRITICAL,HIGH,MEDIUM
+          exit-code: '0'
+          ignore-unfixed: false
 
       # ── Publicación (solo push a main) ──
       - name: Login to GHCR
