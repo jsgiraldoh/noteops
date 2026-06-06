@@ -392,6 +392,9 @@ POST /api/sessions
 # Activar sesión (inicia el reloj WebSocket)
 POST /api/sessions/:id/activate
 
+# 🔓 Obtener sesión activa de una materia (público — sin token)
+GET /api/sessions/active?subject_id=uuid
+
 # 🔓 Ver espacios disponibles y reservados (público — sin token)
 GET /api/sessions/:id/slots
 
@@ -409,6 +412,30 @@ Esta sección es para **estudiantes** que quieran practicar peticiones HTTP con 
 ### Qué son los slots
 
 Cuando el docente crea una sesión de clase, el sistema genera automáticamente una lista de **espacios de tiempo** (slots) para que los estudiantes reserven su turno de exposición. Cada slot tiene un número, hora de inicio y duración. Un slot con `student_id: null` está libre; con un UUID está ocupado.
+
+### Paso 0 — Obtener la sesión activa
+
+El docente te comparte el `SUBJECT_ID` de la materia. Con ese dato obtienes el `SESSION_ID` del día:
+
+```bash
+curl http://noteops.local/api/sessions/active?subject_id={SUBJECT_ID}
+```
+
+Respuesta:
+
+```json
+{
+  "id": "656a54a4-ab4b-40fc-b398-08ee562f928c",
+  "subject_id": "b83dd5ac-cf57-45ca-815a-da9169585b36",
+  "starts_at": "2026-06-06T00:29:24Z",
+  "duration_min": 120,
+  "slot_min": 5,
+  "room": "Sala 201",
+  "active": true
+}
+```
+
+El campo `id` es tu `SESSION_ID`. Si recibes `404` la sesión aún no ha sido activada por el docente.
 
 ### Paso 1 — Ver los slots disponibles
 
