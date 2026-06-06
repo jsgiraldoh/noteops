@@ -279,6 +279,23 @@ func (h *Handler) DeactivateSession(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"deactivated": true})
 }
 
+// GET /api/sessions/active?subject_id=uuid
+func (h *Handler) GetActiveSession(c *gin.Context) {
+	subjectID, err := uuid.Parse(c.Query("subject_id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "subject_id requerido y debe ser un UUID válido"})
+		return
+	}
+
+	session, err := h.repo.GetActiveSessionBySubject(c.Request.Context(), subjectID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "no hay sesión activa para esta materia"})
+		return
+	}
+
+	c.JSON(http.StatusOK, session)
+}
+
 // GET /api/sessions/:id/slots
 func (h *Handler) GetSlots(c *gin.Context) {
 	sessionID, err := uuid.Parse(c.Param("id"))

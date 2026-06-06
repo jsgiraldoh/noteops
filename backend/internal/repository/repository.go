@@ -324,6 +324,20 @@ func (r *Repository) DeactivateSession(ctx context.Context, id uuid.UUID) error 
 	return err
 }
 
+func (r *Repository) GetActiveSessionBySubject(ctx context.Context, subjectID uuid.UUID) (*models.Session, error) {
+	s := &models.Session{}
+	err := r.db.QueryRow(ctx,
+		`SELECT id, subject_id, starts_at, duration_min, slot_min, room, active, created_at
+		 FROM sessions WHERE subject_id = $1 AND active = true
+		 ORDER BY created_at DESC LIMIT 1`, subjectID).
+		Scan(&s.ID, &s.SubjectID, &s.StartsAt, &s.DurationMin,
+			&s.SlotMin, &s.Room, &s.Active, &s.CreatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return s, nil
+}
+
 func (r *Repository) GetSlotsBySession(ctx context.Context, sessionID uuid.UUID) ([]models.Slot, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT id, session_id, number, starts_at, duration_min, student_id, reserved_at

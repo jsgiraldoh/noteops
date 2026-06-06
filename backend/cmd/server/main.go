@@ -66,6 +66,7 @@ func main() {
 	r.GET("/ws/session/:id", hub.ServeWS)
 
 	// ── Rutas públicas adicionales ────────────────────────────────────────────
+	r.GET("/api/sessions/active", h.GetActiveSession)
 	r.GET("/api/sessions/:id/slots", h.GetSlots)
 	r.POST("/api/sessions/:id/slots/:slotID/reserve", h.ReserveSlot)
 
