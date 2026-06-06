@@ -74,6 +74,8 @@ func main() {
 	api := r.Group("/api", middleware.Auth(cfg.JWTSecret))
 	{
 		api.GET("/subjects", h.GetSubjects)
+		api.POST("/subjects", h.CreateSubject)
+		api.DELETE("/subjects/:id", h.DeleteSubject)
 		api.GET("/subjects/:id/students", h.GetStudentsBySubject)
 		api.GET("/subjects/:id/grades", h.GetSubjectGrades)
 		api.GET("/subjects/:id/final-grades", h.GetFinalGrades)

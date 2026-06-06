@@ -130,6 +130,22 @@ func (r *Repository) GetGradesBySubject(ctx context.Context, subjectID uuid.UUID
 
 // ─── Subjects ────────────────────────────────────────────────────────────────
 
+func (r *Repository) CreateSubject(ctx context.Context, req models.CreateSubjectRequest, teacherID uuid.UUID) (*models.Subject, error) {
+	s := &models.Subject{}
+	err := r.db.QueryRow(ctx,
+		`INSERT INTO subjects (name, period, group_name, faculty, teacher_id)
+		 VALUES ($1, $2, $3, $4, $5)
+		 RETURNING id, name, period, group_name, faculty, teacher_id, created_at`,
+		req.Name, req.Period, req.GroupName, req.Faculty, teacherID).
+		Scan(&s.ID, &s.Name, &s.Period, &s.GroupName, &s.Faculty, &s.TeacherID, &s.CreatedAt)
+	return s, err
+}
+
+func (r *Repository) DeleteSubject(ctx context.Context, id uuid.UUID) error {
+	_, err := r.db.Exec(ctx, `DELETE FROM subjects WHERE id = $1`, id)
+	return err
+}
+
 func (r *Repository) GetSubjectsByTeacher(ctx context.Context, teacherID uuid.UUID) ([]models.Subject, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT id, name, period, group_name, faculty, teacher_id, created_at

@@ -144,6 +144,36 @@ func (h *Handler) GetSubjects(c *gin.Context) {
 	c.JSON(http.StatusOK, subjects)
 }
 
+// POST /api/subjects
+func (h *Handler) CreateSubject(c *gin.Context) {
+	var req models.CreateSubjectRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	teacherID, _ := uuid.Parse(c.GetString("user_id"))
+	subject, err := h.repo.CreateSubject(c.Request.Context(), req, teacherID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, subject)
+}
+
+// DELETE /api/subjects/:id
+func (h *Handler) DeleteSubject(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid subject id"})
+		return
+	}
+	if err := h.repo.DeleteSubject(c.Request.Context(), id); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"deleted": true})
+}
+
 // ─── Grades ──────────────────────────────────────────────────────────────────
 
 // POST /api/grades
