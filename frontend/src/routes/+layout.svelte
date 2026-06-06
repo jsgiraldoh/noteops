@@ -8,7 +8,6 @@
   import { subjects, currentSubject } from '$lib/stores/subject';
   import { activeSession } from '$lib/stores/session';
   import { sessionsApi } from '$lib/api/sessions';
-  import { connectClock } from '$lib/stores/clock';
 
   const PUBLIC = ['/login'];
 
@@ -30,7 +29,6 @@
             const fresh = await sessionsApi.getActive($activeSession.subject_id);
             if (fresh && fresh.id === $activeSession.id) {
               activeSession.set(fresh);
-              if (fresh.active) connectClock(fresh.id);
             } else {
               activeSession.set(null);
             }
