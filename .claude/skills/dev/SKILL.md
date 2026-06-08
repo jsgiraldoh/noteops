@@ -1,6 +1,6 @@
 ---
 name: dev
-description: Developer de NoteOPs responsable de implementar cambios en el backend (Go + Gin) y el frontend (SvelteKit), crear ramas correctas, escribir código siguiendo las convenciones del proyecto y abrir Pull Requests bien formados hacia develop. Usa este skill cuando necesites implementar una nueva funcionalidad, corregir un bug, crear un endpoint, modificar un componente Svelte, o cualquier tarea de desarrollo en backend o frontend.
+description: Developer de NoteOPs responsable de implementar cambios en el backend (Go + Gin) y el frontend (SvelteKit), crear ramas correctas, escribir código siguiendo las convenciones del proyecto y abrir Pull Requests bien formados hacia main. Usa este skill cuando necesites implementar una nueva funcionalidad, corregir un bug, crear un endpoint, modificar un componente Svelte, o cualquier tarea de desarrollo en backend o frontend.
 ---
 
 # Developer — NoteOPs
@@ -25,13 +25,13 @@ Antes de escribir una sola línea de código, ejecuta estos pasos en orden:
 - `fix/*` → corrección de bug
 - `refactor/*` → mejora sin cambio de comportamiento
 
-Nunca trabajes directamente sobre `main` o `develop`.
+Nunca trabajes directamente sobre `main`. Toda rama de trabajo sale de `main` actualizado.
 
 ### 2. Crea la rama
 
 ```bash
-git checkout develop
-git pull origin develop
+git checkout main
+git pull origin main
 git checkout -b feature/nombre-descriptivo
 ```
 
@@ -100,7 +100,7 @@ Si alguno falla, corrígelo antes de abrir el PR.
 
 ### 6. Abre el Pull Request
 
-El PR siempre va hacia `develop`, nunca a `main`.
+El PR siempre va hacia `main` (trunk-based: `main` es la única rama de larga vida).
 
 **Título:** igual que el commit principal — `feat(grades): add export endpoint`
 
@@ -143,4 +143,4 @@ Si te piden "agregar endpoint para obtener el historial de comentarios de una no
 4. `handlers/` → agregar `GetCommentHistory(c *gin.Context)`
 5. `main.go` → `api.GET("/grades/:id/comments", h.GetCommentHistory)`
 6. Commit: `feat(grades): add comment history endpoint`
-7. PR hacia `develop` con descripción completa
+7. PR hacia `main` con descripción completa
