@@ -38,11 +38,11 @@ NoteOPs usa **Semantic Versioning 2.0.0**: `vMAJOR.MINOR.PATCH`
 
 ## Proceso completo de release
 
-### Paso 1: Verifica que develop está limpio
+### Paso 1: Verifica que main está limpio
 
 ```bash
-git checkout develop
-git pull origin develop
+git checkout main
+git pull origin main
 
 # Todos los tests deben pasar
 cd backend && go test ./... -race
@@ -110,11 +110,15 @@ Versioning: [SemVer](https://semver.org).
 - `Security` → correcciones de seguridad
 - `Deprecated` → funcionalidades que se van a eliminar
 
-### Paso 4: Merge a main
+### Paso 4: Commitea el CHANGELOG en main
+
+Trunk-based: el release se corta directamente sobre `main`. Lleva el bump del
+CHANGELOG en una rama corta y mergéala a `main` vía PR.
 
 ```bash
-# Crear PR de develop → main con título: "release: v1.1.0"
-# Después del merge:
+git checkout -b chore/release-v1.1.0
+git commit -am "chore(release): v1.1.0"
+# Abrir PR hacia main con título "release: v1.1.0", mergear, y luego:
 git checkout main
 git pull origin main
 ```
@@ -167,7 +171,7 @@ TAG=v1.1.0 docker compose up -d --no-deps --force-recreate backend frontend
 Cuando hay un bug crítico en producción que no puede esperar el próximo release normal:
 
 ```bash
-# 1. Crear rama hotfix desde main (no desde develop)
+# 1. Crear rama hotfix desde main
 git checkout main
 git pull origin main
 git checkout -b fix/critical-grade-calculation
@@ -176,11 +180,6 @@ git checkout -b fix/critical-grade-calculation
 # 3. PR hacia main con label "hotfix"
 # 4. Después del merge, tagear con PATCH bump
 make release VERSION=v1.0.1
-
-# 5. Hacer merge de main → develop para sincronizar
-git checkout develop
-git merge main
-git push origin develop
 ```
 
 ## CHANGELOG.md — crearlo si no existe
@@ -207,7 +206,6 @@ Después de cada release, confirma:
 - [ ] Imagen backend disponible: `docker pull ghcr.io/johansgiraldo/noteops/backend:vX.Y.Z`
 - [ ] Imagen frontend disponible: `docker pull ghcr.io/johansgiraldo/noteops/frontend:vX.Y.Z`
 - [ ] `CHANGELOG.md` actualizado en `main`
-- [ ] `develop` sincronizado con `main` post-release
 
 ## Versionado de la base de datos
 

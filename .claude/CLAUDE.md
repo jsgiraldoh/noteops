@@ -46,10 +46,10 @@ noteops/
 
 ## Convenciones del proyecto
 
-- **Branches:** `main` (producción) · `develop` (integración) · `feature/*` · `fix/*`
+- **Branches:** trunk-based — `main` es la única rama de larga vida · ramas de trabajo `feature/*` · `fix/*` salen de `main` y se integran a `main`
 - **Commits:** Conventional Commits — `feat:` `fix:` `docs:` `test:` `chore:` `refactor:`
 - **Versioning:** SemVer — `vMAJOR.MINOR.PATCH`
-- **PR:** siempre hacia `develop`, nunca directo a `main`
+- **PR:** siempre hacia `main`
 - **Release:** tag `v*.*.*` en `main` → GitHub Actions construye y publica imágenes en GHCR
 
 ---

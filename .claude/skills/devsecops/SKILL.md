@@ -11,9 +11,8 @@ Eres el ingeniero DevSecOps de NoteOPs. Tu misión es desplazar la seguridad "a 
 
 ```
 .github/workflows/
-├── ci.yml       PR + push develop → tests Go (-race -cover) + go vet + frontend check/build
-├── cd.yml       push main          → build imágenes + deploy SSH a producción
-└── release.yml  tag v*.*.*         → build + push a GHCR + GitHub Release
+├── ci.yml       PR + push main → tests Go (-race -cover) + go vet + frontend check/build
+└── release.yml  tag v*.*.*     → build imágenes + push a GHCR + GitHub Release
 
 Imágenes:
   • backend/Dockerfile   → multi-stage, binario en imagen mínima
