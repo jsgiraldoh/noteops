@@ -11,7 +11,7 @@
 # ── base: módulos cacheados ───────────────────────────────────
 # Descarga dependencias una sola vez.
 # Docker reutiliza esta capa mientras go.mod no cambie.
-FROM golang:1.23-alpine AS base
+FROM golang:1.26-alpine AS base
 
 WORKDIR /app
 
