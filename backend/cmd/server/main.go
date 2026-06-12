@@ -17,7 +17,26 @@ import (
 	"github.com/johansgiraldo/noteops/backend/internal/middleware"
 	"github.com/johansgiraldo/noteops/backend/internal/repository"
 	"github.com/johansgiraldo/noteops/backend/internal/service"
+
+	_ "github.com/johansgiraldo/noteops/backend/docs" // docs generados por swag init
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
+
+// @title           NoteOPs API
+// @version         1.0
+// @description     API REST de gestión de notas académicas con cálculo automático de nota definitiva, sesiones de clase en tiempo real y reserva de turnos.
+// @contact.name    Johan Sebastian Giraldo Hurtado
+// @license.name    Apache 2.0
+// @license.url     https://www.apache.org/licenses/LICENSE-2.0.html
+// @host            localhost:8080
+// @BasePath        /api
+// @schemes         http https
+//
+// @securityDefinitions.apikey BearerAuth
+// @in   header
+// @name Authorization
+// @description Escribe **Bearer &lt;token&gt;** usando el JWT obtenido en /api/auth/login.
 
 func main() {
 	cfg := config.Load()
@@ -56,6 +75,13 @@ func main() {
 		ExposeHeaders: []string{"Content-Length"},
 		MaxAge:        12 * time.Hour,
 	}))
+
+	// ── Documentación Swagger ─────────────────────────────────────────────────
+	// Solo se expone fuera de producción para no publicar el mapa de la API.
+	if cfg.AppEnv != "production" {
+		r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+		log.Println("✓ Swagger UI disponible en /swagger/index.html")
+	}
 
 	// ── Rutas públicas ────────────────────────────────────────────────────────
 	r.GET("/api/health", h.Health)

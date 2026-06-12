@@ -205,6 +205,28 @@ type FinalGrade struct {
 	FinalGrade   float64 `json:"final_grade"`
 }
 
+// ErrorResponse es el envoltorio estándar de error de la API.
+type ErrorResponse struct {
+	Error string `json:"error" example:"Mensaje de error legible"`
+}
+
+// MessageResponse es la respuesta de operaciones que solo confirman un cambio.
+type MessageResponse struct {
+	Message string `json:"message" example:"Operación realizada"`
+}
+
+// LoginResponse es la respuesta de un login exitoso: token JWT y el usuario.
+type LoginResponse struct {
+	Token string `json:"token"`
+	User  User   `json:"user"`
+}
+
+// CreateSessionResponse es la respuesta al crear una sesión con sus espacios.
+type CreateSessionResponse struct {
+	Session Session `json:"session"`
+	Slots   []Slot  `json:"slots"`
+}
+
 type SessionTick struct {
 	SessionID    string `json:"session_id"`
 	ElapsedSec   int    `json:"elapsed_sec"`
