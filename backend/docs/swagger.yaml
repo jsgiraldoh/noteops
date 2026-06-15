@@ -1,0 +1,1049 @@
+basePath: /api
+definitions:
+  github_com_johansgiraldo_noteops_backend_internal_models.Activity:
+    properties:
+      cut_id:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      scheduled_at:
+        type: string
+      weight:
+        type: number
+    type: object
+  github_com_johansgiraldo_noteops_backend_internal_models.CreateSessionRequest:
+    properties:
+      duration_min:
+        minimum: 5
+        type: integer
+      room:
+        type: string
+      slot_min:
+        minimum: 5
+        type: integer
+      starts_at:
+        type: string
+      subject_id:
+        type: string
+    required:
+    - duration_min
+    - slot_min
+    - starts_at
+    - subject_id
+    type: object
+  github_com_johansgiraldo_noteops_backend_internal_models.CreateSessionResponse:
+    properties:
+      session:
+        $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.Session'
+      slots:
+        items:
+          $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.Slot'
+        type: array
+    type: object
+  github_com_johansgiraldo_noteops_backend_internal_models.CreateSubjectRequest:
+    properties:
+      faculty:
+        type: string
+      group_name:
+        type: string
+      name:
+        type: string
+      period:
+        type: string
+    required:
+    - name
+    - period
+    type: object
+  github_com_johansgiraldo_noteops_backend_internal_models.Cut:
+    properties:
+      activities:
+        items:
+          $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.Activity'
+        type: array
+      id:
+        type: string
+      name:
+        type: string
+      number:
+        type: integer
+      subject_id:
+        type: string
+      weight:
+        type: number
+    type: object
+  github_com_johansgiraldo_noteops_backend_internal_models.Enrollment:
+    properties:
+      id:
+        type: string
+      student_id:
+        type: string
+      subject_id:
+        type: string
+    type: object
+  github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse:
+    properties:
+      error:
+        example: Mensaje de error legible
+        type: string
+    type: object
+  github_com_johansgiraldo_noteops_backend_internal_models.FinalGrade:
+    properties:
+      enrollment_id:
+        type: string
+      final_grade:
+        type: number
+      student_id:
+        type: string
+      subject_id:
+        type: string
+    type: object
+  github_com_johansgiraldo_noteops_backend_internal_models.Grade:
+    properties:
+      activity_id:
+        type: string
+      comment:
+        type: string
+      enrollment_id:
+        type: string
+      id:
+        type: string
+      recorded_at:
+        type: string
+      updated_at:
+        type: string
+      value:
+        type: number
+    type: object
+  github_com_johansgiraldo_noteops_backend_internal_models.ImportGradeRow:
+    properties:
+      activity_name:
+        type: string
+      cut_number:
+        type: integer
+      student_code:
+        type: string
+      value:
+        type: number
+    type: object
+  github_com_johansgiraldo_noteops_backend_internal_models.ImportRequest:
+    properties:
+      grades:
+        items:
+          $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ImportGradeRow'
+        type: array
+      structure:
+        items:
+          $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ImportStructureRow'
+        type: array
+      students:
+        items:
+          $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ImportStudentRow'
+        type: array
+    type: object
+  github_com_johansgiraldo_noteops_backend_internal_models.ImportResult:
+    properties:
+      activities_created:
+        type: integer
+      cuts_created:
+        type: integer
+      grades_imported:
+        type: integer
+      students_created:
+        type: integer
+      students_enrolled:
+        type: integer
+    type: object
+  github_com_johansgiraldo_noteops_backend_internal_models.ImportStructureRow:
+    properties:
+      activity_name:
+        type: string
+      activity_weight:
+        type: number
+      cut_name:
+        type: string
+      cut_number:
+        type: integer
+      cut_weight:
+        type: number
+    type: object
+  github_com_johansgiraldo_noteops_backend_internal_models.ImportStudentRow:
+    properties:
+      code:
+        type: string
+      email:
+        type: string
+      full_name:
+        type: string
+    type: object
+  github_com_johansgiraldo_noteops_backend_internal_models.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  github_com_johansgiraldo_noteops_backend_internal_models.LoginResponse:
+    properties:
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.User'
+    type: object
+  github_com_johansgiraldo_noteops_backend_internal_models.MessageResponse:
+    properties:
+      message:
+        example: Operación realizada
+        type: string
+    type: object
+  github_com_johansgiraldo_noteops_backend_internal_models.RecordGradeRequest:
+    properties:
+      activity_id:
+        type: string
+      comment:
+        type: string
+      enrollment_id:
+        type: string
+      value:
+        maximum: 5
+        minimum: 0
+        type: number
+    required:
+    - activity_id
+    - enrollment_id
+    - value
+    type: object
+  github_com_johansgiraldo_noteops_backend_internal_models.RegisterStudentRequest:
+    properties:
+      code:
+        type: string
+      email:
+        type: string
+      full_name:
+        type: string
+    required:
+    - email
+    - full_name
+    type: object
+  github_com_johansgiraldo_noteops_backend_internal_models.ReserveSlotRequest:
+    properties:
+      student_id:
+        type: string
+    required:
+    - student_id
+    type: object
+  github_com_johansgiraldo_noteops_backend_internal_models.Session:
+    properties:
+      active:
+        type: boolean
+      created_at:
+        type: string
+      duration_min:
+        type: integer
+      id:
+        type: string
+      room:
+        type: string
+      slot_min:
+        type: integer
+      starts_at:
+        type: string
+      subject_id:
+        type: string
+    type: object
+  github_com_johansgiraldo_noteops_backend_internal_models.Slot:
+    properties:
+      duration_min:
+        type: integer
+      id:
+        type: string
+      number:
+        type: integer
+      reserved_at:
+        type: string
+      session_id:
+        type: string
+      starts_at:
+        type: string
+      student_id:
+        type: string
+    type: object
+  github_com_johansgiraldo_noteops_backend_internal_models.Student:
+    properties:
+      code:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      full_name:
+        type: string
+      id:
+        type: string
+    type: object
+  github_com_johansgiraldo_noteops_backend_internal_models.Subject:
+    properties:
+      created_at:
+        type: string
+      faculty:
+        type: string
+      group_name:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      period:
+        type: string
+      teacher_id:
+        type: string
+    type: object
+  github_com_johansgiraldo_noteops_backend_internal_models.UpdateCommentRequest:
+    properties:
+      comment:
+        type: string
+    required:
+    - comment
+    type: object
+  github_com_johansgiraldo_noteops_backend_internal_models.UpdateStudentRequest:
+    properties:
+      code:
+        type: string
+      email:
+        type: string
+      full_name:
+        type: string
+    required:
+    - email
+    - full_name
+    type: object
+  github_com_johansgiraldo_noteops_backend_internal_models.UpdateSubjectRequest:
+    properties:
+      faculty:
+        type: string
+      group_name:
+        type: string
+      name:
+        type: string
+      period:
+        type: string
+    required:
+    - name
+    - period
+    type: object
+  github_com_johansgiraldo_noteops_backend_internal_models.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      full_name:
+        type: string
+      id:
+        type: string
+      role:
+        description: teacher | admin
+        type: string
+    type: object
+  github_com_johansgiraldo_noteops_backend_internal_service.SubjectGradesResult:
+    properties:
+      cuts:
+        items:
+          $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.Cut'
+        type: array
+      enrollments:
+        items:
+          $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.Enrollment'
+        type: array
+      final_grades:
+        items:
+          $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.FinalGrade'
+        type: array
+      grades:
+        items:
+          $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.Grade'
+        type: array
+      students:
+        items:
+          $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.Student'
+        type: array
+    type: object
+  internal_handlers.enrollStudentBody:
+    properties:
+      student_id:
+        type: string
+    required:
+    - student_id
+    type: object
+host: localhost:8080
+info:
+  contact:
+    name: Johan Sebastian Giraldo Hurtado
+  description: API REST de gestión de notas académicas con cálculo automático de nota
+    definitiva, sesiones de clase en tiempo real y reserva de turnos.
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+  title: NoteOPs API
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Valida credenciales y devuelve un JWT válido por 24 horas.
+      parameters:
+      - description: Correo y contraseña
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+      summary: Autenticar usuario
+      tags:
+      - auth
+  /grades:
+    post:
+      consumes:
+      - application/json
+      description: Crea o actualiza (upsert) la nota de una actividad para una matrícula.
+      parameters:
+      - description: Datos de la nota (valor entre 0 y 5)
+        in: body
+        name: grade
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.RecordGradeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.Grade'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Registrar o actualizar una nota
+      tags:
+      - grades
+  /grades/{id}/comment:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID de la nota (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Nuevo comentario
+        in: body
+        name: comment
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.UpdateCommentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Actualizar el comentario de una nota
+      tags:
+      - grades
+  /health:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.MessageResponse'
+      summary: Healthcheck del servicio
+      tags:
+      - health
+  /sessions:
+    post:
+      consumes:
+      - application/json
+      description: Crea una sesión y genera automáticamente los espacios (slots) según
+        la duración.
+      parameters:
+      - description: Datos de la sesión
+        in: body
+        name: session
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.CreateSessionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.CreateSessionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Crear sesión de clase con sus espacios
+      tags:
+      - sessions
+  /sessions/{id}/activate:
+    post:
+      parameters:
+      - description: ID de la sesión (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Iniciar una sesión de clase
+      tags:
+      - sessions
+  /sessions/{id}/deactivate:
+    post:
+      parameters:
+      - description: ID de la sesión (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Finalizar una sesión de clase
+      tags:
+      - sessions
+  /sessions/{id}/slots:
+    get:
+      parameters:
+      - description: ID de la sesión (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.Slot'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+      summary: Listar los espacios (slots) de una sesión
+      tags:
+      - slots
+  /sessions/{id}/slots/{slotID}/reserve:
+    post:
+      consumes:
+      - application/json
+      description: Reserva un turno para un estudiante. Devuelve 409 si el espacio
+        ya está tomado.
+      parameters:
+      - description: ID de la sesión (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: ID del espacio (UUID)
+        in: path
+        name: slotID
+        required: true
+        type: string
+      - description: ID del estudiante
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ReserveSlotRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.Slot'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+      summary: Reservar un espacio de una sesión
+      tags:
+      - slots
+  /sessions/active:
+    get:
+      parameters:
+      - description: ID de la materia (UUID)
+        in: query
+        name: subject_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.Session'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+      summary: Obtener la sesión activa de una materia
+      tags:
+      - sessions
+  /students:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Datos del estudiante
+        in: body
+        name: student
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.RegisterStudentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.Student'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Crear estudiante
+      tags:
+      - students
+  /students/{id}:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID del estudiante (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Datos del estudiante
+        in: body
+        name: student
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.UpdateStudentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.Student'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Actualizar estudiante
+      tags:
+      - students
+  /subjects:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.Subject'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Listar materias del docente autenticado
+      tags:
+      - subjects
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Datos de la materia
+        in: body
+        name: subject
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.CreateSubjectRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.Subject'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Crear materia
+      tags:
+      - subjects
+  /subjects/{id}:
+    delete:
+      parameters:
+      - description: ID de la materia (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Eliminar materia
+      tags:
+      - subjects
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID de la materia (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Datos de la materia
+        in: body
+        name: subject
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.UpdateSubjectRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.Subject'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Actualizar materia
+      tags:
+      - subjects
+  /subjects/{id}/enroll:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID de la materia (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: ID del estudiante
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers.enrollStudentBody'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.Enrollment'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Matricular estudiante en una materia
+      tags:
+      - subjects
+  /subjects/{id}/final-grades:
+    get:
+      parameters:
+      - description: ID de la materia (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.FinalGrade'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Obtener las notas definitivas de una materia
+      tags:
+      - grades
+  /subjects/{id}/grades:
+    get:
+      description: Devuelve cortes, estudiantes, matrículas, notas y notas definitivas
+        calculadas.
+      parameters:
+      - description: ID de la materia (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_service.SubjectGradesResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Obtener la planilla completa de notas de una materia
+      tags:
+      - grades
+  /subjects/{id}/import:
+    post:
+      consumes:
+      - application/json
+      description: Importa estudiantes, estructura de evaluación y notas en una sola
+        operación.
+      parameters:
+      - description: ID de la materia (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Datos a importar
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ImportRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ImportResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Importar datos masivos de una materia
+      tags:
+      - subjects
+  /subjects/{id}/students:
+    get:
+      parameters:
+      - description: ID de la materia (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.Student'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_johansgiraldo_noteops_backend_internal_models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Listar estudiantes de una materia
+      tags:
+      - subjects
+schemes:
+- http
+- https
+securityDefinitions:
+  BearerAuth:
+    description: Escribe **Bearer &lt;token&gt;** usando el JWT obtenido en /api/auth/login.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

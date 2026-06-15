@@ -28,9 +28,25 @@ func New(repo repository.Repo, svc *service.Service, hub *Hub, jwtSecret string)
 	return &Handler{repo: repo, svc: svc, hub: hub, jwtSecret: jwtSecret}
 }
 
+// enrollStudentBody es el cuerpo de la petición para matricular un estudiante.
+type enrollStudentBody struct {
+	StudentID string `json:"student_id" binding:"required,uuid"`
+}
+
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 
-// POST /api/auth/login
+// Login godoc
+// @Summary      Autenticar usuario
+// @Description  Valida credenciales y devuelve un JWT válido por 24 horas.
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        credentials  body      models.LoginRequest   true  "Correo y contraseña"
+// @Success      200          {object}  models.LoginResponse
+// @Failure      400          {object}  models.ErrorResponse
+// @Failure      401          {object}  models.ErrorResponse
+// @Failure      500          {object}  models.ErrorResponse
+// @Router       /auth/login [post]
 func (h *Handler) Login(c *gin.Context) {
 	var req models.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -71,7 +87,18 @@ func (h *Handler) Login(c *gin.Context) {
 
 // ─── Students ────────────────────────────────────────────────────────────────
 
-// PATCH /api/students/:id
+// UpdateStudent godoc
+// @Summary      Actualizar estudiante
+// @Tags         students
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id       path      string                       true  "ID del estudiante (UUID)"
+// @Param        student  body      models.UpdateStudentRequest  true  "Datos del estudiante"
+// @Success      200      {object}  models.Student
+// @Failure      400      {object}  models.ErrorResponse
+// @Failure      500      {object}  models.ErrorResponse
+// @Router       /students/{id} [patch]
 func (h *Handler) UpdateStudent(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -91,7 +118,17 @@ func (h *Handler) UpdateStudent(c *gin.Context) {
 	c.JSON(http.StatusOK, student)
 }
 
-// POST /api/students
+// CreateStudent godoc
+// @Summary      Crear estudiante
+// @Tags         students
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        student  body      models.RegisterStudentRequest  true  "Datos del estudiante"
+// @Success      201      {object}  models.Student
+// @Failure      400      {object}  models.ErrorResponse
+// @Failure      500      {object}  models.ErrorResponse
+// @Router       /students [post]
 func (h *Handler) CreateStudent(c *gin.Context) {
 	var req models.RegisterStudentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -106,16 +143,25 @@ func (h *Handler) CreateStudent(c *gin.Context) {
 	c.JSON(http.StatusCreated, student)
 }
 
-// POST /api/subjects/:id/enroll
+// EnrollStudent godoc
+// @Summary      Matricular estudiante en una materia
+// @Tags         subjects
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id    path      string                                true  "ID de la materia (UUID)"
+// @Param        body  body      handlers.enrollStudentBody            true  "ID del estudiante"
+// @Success      201   {object}  models.Enrollment
+// @Failure      400   {object}  models.ErrorResponse
+// @Failure      500   {object}  models.ErrorResponse
+// @Router       /subjects/{id}/enroll [post]
 func (h *Handler) EnrollStudent(c *gin.Context) {
 	subjectID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "ID de materia inválido"})
 		return
 	}
-	var body struct {
-		StudentID string `json:"student_id" binding:"required,uuid"`
-	}
+	var body enrollStudentBody
 	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": sanitizeBindError(err)})
 		return
@@ -129,7 +175,16 @@ func (h *Handler) EnrollStudent(c *gin.Context) {
 	c.JSON(http.StatusCreated, enrollment)
 }
 
-// GET /api/subjects/:id/students
+// GetStudentsBySubject godoc
+// @Summary      Listar estudiantes de una materia
+// @Tags         subjects
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      string           true  "ID de la materia (UUID)"
+// @Success      200  {array}   models.Student
+// @Failure      400  {object}  models.ErrorResponse
+// @Failure      500  {object}  models.ErrorResponse
+// @Router       /subjects/{id}/students [get]
 func (h *Handler) GetStudentsBySubject(c *gin.Context) {
 	subjectID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -146,7 +201,14 @@ func (h *Handler) GetStudentsBySubject(c *gin.Context) {
 
 // ─── Subjects ────────────────────────────────────────────────────────────────
 
-// GET /api/subjects
+// GetSubjects godoc
+// @Summary      Listar materias del docente autenticado
+// @Tags         subjects
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200  {array}   models.Subject
+// @Failure      500  {object}  models.ErrorResponse
+// @Router       /subjects [get]
 func (h *Handler) GetSubjects(c *gin.Context) {
 	teacherID, _ := uuid.Parse(c.GetString("user_id"))
 	subjects, err := h.repo.GetSubjectsByTeacher(c.Request.Context(), teacherID)
@@ -157,7 +219,17 @@ func (h *Handler) GetSubjects(c *gin.Context) {
 	c.JSON(http.StatusOK, subjects)
 }
 
-// POST /api/subjects
+// CreateSubject godoc
+// @Summary      Crear materia
+// @Tags         subjects
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        subject  body      models.CreateSubjectRequest  true  "Datos de la materia"
+// @Success      201      {object}  models.Subject
+// @Failure      400      {object}  models.ErrorResponse
+// @Failure      500      {object}  models.ErrorResponse
+// @Router       /subjects [post]
 func (h *Handler) CreateSubject(c *gin.Context) {
 	var req models.CreateSubjectRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -173,7 +245,18 @@ func (h *Handler) CreateSubject(c *gin.Context) {
 	c.JSON(http.StatusCreated, subject)
 }
 
-// PATCH /api/subjects/:id
+// UpdateSubject godoc
+// @Summary      Actualizar materia
+// @Tags         subjects
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id       path      string                       true  "ID de la materia (UUID)"
+// @Param        subject  body      models.UpdateSubjectRequest  true  "Datos de la materia"
+// @Success      200      {object}  models.Subject
+// @Failure      400      {object}  models.ErrorResponse
+// @Failure      500      {object}  models.ErrorResponse
+// @Router       /subjects/{id} [patch]
 func (h *Handler) UpdateSubject(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -193,7 +276,16 @@ func (h *Handler) UpdateSubject(c *gin.Context) {
 	c.JSON(http.StatusOK, subject)
 }
 
-// DELETE /api/subjects/:id
+// DeleteSubject godoc
+// @Summary      Eliminar materia
+// @Tags         subjects
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      string                  true  "ID de la materia (UUID)"
+// @Success      200  {object}  models.MessageResponse
+// @Failure      400  {object}  models.ErrorResponse
+// @Failure      500  {object}  models.ErrorResponse
+// @Router       /subjects/{id} [delete]
 func (h *Handler) DeleteSubject(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -209,7 +301,18 @@ func (h *Handler) DeleteSubject(c *gin.Context) {
 
 // ─── Grades ──────────────────────────────────────────────────────────────────
 
-// POST /api/grades
+// RecordGrade godoc
+// @Summary      Registrar o actualizar una nota
+// @Description  Crea o actualiza (upsert) la nota de una actividad para una matrícula.
+// @Tags         grades
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        grade  body      models.RecordGradeRequest  true  "Datos de la nota (valor entre 0 y 5)"
+// @Success      200    {object}  models.Grade
+// @Failure      400    {object}  models.ErrorResponse
+// @Failure      500    {object}  models.ErrorResponse
+// @Router       /grades [post]
 func (h *Handler) RecordGrade(c *gin.Context) {
 	var req models.RecordGradeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -224,7 +327,18 @@ func (h *Handler) RecordGrade(c *gin.Context) {
 	c.JSON(http.StatusOK, grade)
 }
 
-// PATCH /api/grades/:id/comment
+// UpdateComment godoc
+// @Summary      Actualizar el comentario de una nota
+// @Tags         grades
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id       path      string                       true  "ID de la nota (UUID)"
+// @Param        comment  body      models.UpdateCommentRequest  true  "Nuevo comentario"
+// @Success      200      {object}  models.MessageResponse
+// @Failure      400      {object}  models.ErrorResponse
+// @Failure      500      {object}  models.ErrorResponse
+// @Router       /grades/{id}/comment [patch]
 func (h *Handler) UpdateComment(c *gin.Context) {
 	gradeID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -243,7 +357,17 @@ func (h *Handler) UpdateComment(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"updated": true, "message": "Comentario actualizado"})
 }
 
-// GET /api/subjects/:id/grades
+// GetSubjectGrades godoc
+// @Summary      Obtener la planilla completa de notas de una materia
+// @Description  Devuelve cortes, estudiantes, matrículas, notas y notas definitivas calculadas.
+// @Tags         grades
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      string                        true  "ID de la materia (UUID)"
+// @Success      200  {object}  service.SubjectGradesResult
+// @Failure      400  {object}  models.ErrorResponse
+// @Failure      500  {object}  models.ErrorResponse
+// @Router       /subjects/{id}/grades [get]
 func (h *Handler) GetSubjectGrades(c *gin.Context) {
 	subjectID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -258,7 +382,16 @@ func (h *Handler) GetSubjectGrades(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
-// GET /api/subjects/:id/final-grades
+// GetFinalGrades godoc
+// @Summary      Obtener las notas definitivas de una materia
+// @Tags         grades
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      string              true  "ID de la materia (UUID)"
+// @Success      200  {array}   models.FinalGrade
+// @Failure      400  {object}  models.ErrorResponse
+// @Failure      500  {object}  models.ErrorResponse
+// @Router       /subjects/{id}/final-grades [get]
 func (h *Handler) GetFinalGrades(c *gin.Context) {
 	subjectID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -275,7 +408,18 @@ func (h *Handler) GetFinalGrades(c *gin.Context) {
 
 // ─── Sessions ────────────────────────────────────────────────────────────────
 
-// POST /api/sessions
+// CreateSession godoc
+// @Summary      Crear sesión de clase con sus espacios
+// @Description  Crea una sesión y genera automáticamente los espacios (slots) según la duración.
+// @Tags         sessions
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        session  body      models.CreateSessionRequest  true  "Datos de la sesión"
+// @Success      201      {object}  models.CreateSessionResponse
+// @Failure      400      {object}  models.ErrorResponse
+// @Failure      500      {object}  models.ErrorResponse
+// @Router       /sessions [post]
 func (h *Handler) CreateSession(c *gin.Context) {
 	var req models.CreateSessionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -295,7 +439,16 @@ func (h *Handler) CreateSession(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"session": session, "slots": slots})
 }
 
-// POST /api/sessions/:id/activate
+// ActivateSession godoc
+// @Summary      Iniciar una sesión de clase
+// @Tags         sessions
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      string                  true  "ID de la sesión (UUID)"
+// @Success      200  {object}  models.MessageResponse
+// @Failure      400  {object}  models.ErrorResponse
+// @Failure      500  {object}  models.ErrorResponse
+// @Router       /sessions/{id}/activate [post]
 func (h *Handler) ActivateSession(c *gin.Context) {
 	sessionID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -309,7 +462,16 @@ func (h *Handler) ActivateSession(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"activated": true, "message": "Sesión iniciada"})
 }
 
-// POST /api/sessions/:id/deactivate
+// DeactivateSession godoc
+// @Summary      Finalizar una sesión de clase
+// @Tags         sessions
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      string                  true  "ID de la sesión (UUID)"
+// @Success      200  {object}  models.MessageResponse
+// @Failure      400  {object}  models.ErrorResponse
+// @Failure      500  {object}  models.ErrorResponse
+// @Router       /sessions/{id}/deactivate [post]
 func (h *Handler) DeactivateSession(c *gin.Context) {
 	sessionID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -323,7 +485,15 @@ func (h *Handler) DeactivateSession(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"deactivated": true, "message": "Sesión finalizada"})
 }
 
-// GET /api/sessions/active?subject_id=uuid
+// GetActiveSession godoc
+// @Summary      Obtener la sesión activa de una materia
+// @Tags         sessions
+// @Produce      json
+// @Param        subject_id  query     string           true  "ID de la materia (UUID)"
+// @Success      200         {object}  models.Session
+// @Failure      400         {object}  models.ErrorResponse
+// @Failure      404         {object}  models.ErrorResponse
+// @Router       /sessions/active [get]
 func (h *Handler) GetActiveSession(c *gin.Context) {
 	subjectID, err := uuid.Parse(c.Query("subject_id"))
 	if err != nil {
@@ -338,7 +508,15 @@ func (h *Handler) GetActiveSession(c *gin.Context) {
 	c.JSON(http.StatusOK, session)
 }
 
-// GET /api/sessions/:id/slots
+// GetSlots godoc
+// @Summary      Listar los espacios (slots) de una sesión
+// @Tags         slots
+// @Produce      json
+// @Param        id   path      string           true  "ID de la sesión (UUID)"
+// @Success      200  {array}   models.Slot
+// @Failure      400  {object}  models.ErrorResponse
+// @Failure      500  {object}  models.ErrorResponse
+// @Router       /sessions/{id}/slots [get]
 func (h *Handler) GetSlots(c *gin.Context) {
 	sessionID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -353,7 +531,20 @@ func (h *Handler) GetSlots(c *gin.Context) {
 	c.JSON(http.StatusOK, slots)
 }
 
-// POST /api/sessions/:id/slots/:slotID/reserve
+// ReserveSlot godoc
+// @Summary      Reservar un espacio de una sesión
+// @Description  Reserva un turno para un estudiante. Devuelve 409 si el espacio ya está tomado.
+// @Tags         slots
+// @Accept       json
+// @Produce      json
+// @Param        id      path      string                     true  "ID de la sesión (UUID)"
+// @Param        slotID  path      string                     true  "ID del espacio (UUID)"
+// @Param        body    body      models.ReserveSlotRequest  true  "ID del estudiante"
+// @Success      200     {object}  models.Slot
+// @Failure      400     {object}  models.ErrorResponse
+// @Failure      409     {object}  models.ErrorResponse
+// @Failure      500     {object}  models.ErrorResponse
+// @Router       /sessions/{id}/slots/{slotID}/reserve [post]
 func (h *Handler) ReserveSlot(c *gin.Context) {
 	slotID, err := uuid.Parse(c.Param("slotID"))
 	if err != nil {
@@ -385,7 +576,19 @@ func (h *Handler) ReserveSlot(c *gin.Context) {
 	c.JSON(http.StatusOK, slot)
 }
 
-// POST /api/subjects/:id/import
+// ImportSubjectData godoc
+// @Summary      Importar datos masivos de una materia
+// @Description  Importa estudiantes, estructura de evaluación y notas en una sola operación.
+// @Tags         subjects
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id    path      string                true  "ID de la materia (UUID)"
+// @Param        data  body      models.ImportRequest  true  "Datos a importar"
+// @Success      200   {object}  models.ImportResult
+// @Failure      400   {object}  models.ErrorResponse
+// @Failure      500   {object}  models.ErrorResponse
+// @Router       /subjects/{id}/import [post]
 func (h *Handler) ImportSubjectData(c *gin.Context) {
 	subjectID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -405,7 +608,12 @@ func (h *Handler) ImportSubjectData(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
-// GET /api/health
+// Health godoc
+// @Summary      Healthcheck del servicio
+// @Tags         health
+// @Produce      json
+// @Success      200  {object}  models.MessageResponse
+// @Router       /health [get]
 func (h *Handler) Health(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
