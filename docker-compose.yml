@@ -43,6 +43,9 @@ services:
       - "traefik.http.routers.api.entrypoints=web"
       - "traefik.http.routers.ws.rule=Host(`${APP_DOMAIN:-noteops.local}`) && PathPrefix(`/ws`)"
       - "traefik.http.routers.ws.entrypoints=web"
+      # Swagger UI — el backend solo la monta cuando APP_ENV != production
+      - "traefik.http.routers.swagger.rule=Host(`${APP_DOMAIN:-noteops.local}`) && PathPrefix(`/swagger`)"
+      - "traefik.http.routers.swagger.entrypoints=web"
       - "traefik.http.services.api.loadbalancer.server.port=8080"
     depends_on:
       postgres: { condition: service_healthy }
@@ -80,6 +83,9 @@ services:
       - "traefik.http.routers.api.entrypoints=web"
       - "traefik.http.routers.ws.rule=Host(`${APP_DOMAIN:-noteops.local}`) && PathPrefix(`/ws`)"
       - "traefik.http.routers.ws.entrypoints=web"
+      # Swagger UI — el backend solo la monta cuando APP_ENV != production
+      - "traefik.http.routers.swagger.rule=Host(`${APP_DOMAIN:-noteops.local}`) && PathPrefix(`/swagger`)"
+      - "traefik.http.routers.swagger.entrypoints=web"
       - "traefik.http.services.api.loadbalancer.server.port=8080"
     depends_on:
       postgres: { condition: service_healthy }

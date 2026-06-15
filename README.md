@@ -294,6 +294,10 @@ Respuesta exitosa (HTTP 200):
 
 La URL base local es `http://noteops.local/api`. Los endpoints marcados como 🔓 **públicos** no requieren autenticación; el resto requieren la cabecera `Authorization: Bearer <token>` obtenida en el login.
 
+> 📘 **Documentación interactiva (Swagger / OpenAPI).** Con el sistema corriendo, abre **http://noteops.local/swagger/index.html** para explorar todos los endpoints, ver los esquemas de request/response y probarlos desde el navegador. Para los endpoints protegidos, usa el botón **Authorize** y pega el JWT obtenido en `/api/auth/login` (formato `Bearer <token>`).
+>
+> Por seguridad, la UI de Swagger **solo se expone cuando `APP_ENV != production`**; en producción la ruta `/swagger` responde `404`. El contrato OpenAPI en crudo está disponible en `http://noteops.local/swagger/doc.json`.
+
 ### Autenticación
 
 | Método | Ruta | Descripción |
@@ -559,7 +563,7 @@ Add-Content -Path "C:\Windows\System32\drivers\etc\hosts" -Value "127.0.0.1  not
 docker compose --profile local up -d --build
 ```
 
-La aplicación queda en **http://noteops.local** y Adminer en **http://localhost:8081**.
+La aplicación queda en **http://noteops.local**, la documentación interactiva de la API en **http://noteops.local/swagger/index.html** y Adminer en **http://localhost:8081**.
 
 **Credenciales por defecto:**
 
@@ -693,6 +697,7 @@ Todas las herramientas son open source y no requieren cuentas ni tokens de pago 
 | ✅ | Importación de planillas Excel (estructura + notas) |
 | ✅ | CI con seguridad: gitleaks, govulncheck, CodeQL, Trivy |
 | ✅ | Tests unitarios y de integración (testcontainers) |
+| ✅ | Documentación interactiva de la API (Swagger / OpenAPI) |
 | ⏳ | Exportar notas a Excel compatible con el formato institucional |
 | ⏳ | Autenticación completa: registro de docentes y cambio de contraseña |
 | ⏳ | Endurecer producción: restringir CORS y validar el origen del WebSocket |
