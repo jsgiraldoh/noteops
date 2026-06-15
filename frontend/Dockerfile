@@ -11,7 +11,7 @@
 # ── base: dependencias npm cacheadas ─────────────────────────
 # Instala node_modules una sola vez.
 # Docker reutiliza esta capa mientras package.json no cambie.
-FROM node:22-alpine AS base
+FROM node:26-alpine AS base
 
 WORKDIR /app
 
@@ -50,7 +50,7 @@ RUN npx svelte-kit sync && npm run build
 # ── prod: Node mínimo sirviendo el build ─────────────────────
 # Solo runtime de Node + output compilado.
 # Sin código fuente ni dependencias de desarrollo.
-FROM node:22-alpine AS prod
+FROM node:26-alpine AS prod
 
 WORKDIR /app
 
