@@ -39,7 +39,7 @@ jobs:
 
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.23'
+          go-version: '1.26'
           cache-dependency-path: backend/go.sum
 
       - name: go vet
@@ -136,7 +136,7 @@ jobs:
         if: matrix.language == 'go'
         uses: actions/setup-go@v6
         with:
-          go-version: '1.23'
+          go-version: '1.26'
           cache-dependency-path: backend/go.sum
 
       - name: Inicializar CodeQL
